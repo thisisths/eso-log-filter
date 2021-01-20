@@ -1,5 +1,6 @@
 ﻿namespace EsoLogFilter.Ui.TestConsole
 {
+    using EsoLogFilter.Core;
     using EsoLogFilter.Core.Model.Objects;
     using EsoLogFilter.Core.Services;
     using EsoLogFilter.Infrastructure.File;
@@ -25,7 +26,7 @@
             logger.LogDebug("Starting application");
 
             var fileHandler = serviceProvider.GetService<IFileHandler>();
-            fileHandler.FilterFileByUnitType("D:\\OneDrive\\Dokumente\\Elder Scrolls Online\\live\\Logs\\Encounter-27.log", new[] { UnitTypes.Player, UnitTypes.MonsterNpcAlly }, "D:\\OneDrive\\Dokumente\\Elder Scrolls Online\\live\\Logs\\FilteredLog.log");
+            fileHandler.FilterFileByUnitType("D:\\OneDrive\\Dokumente\\Elder Scrolls Online\\live\\Logs\\Encounter.log", new[] { UnitTypes.Player, UnitTypes.MonsterNpcAlly }, "D:\\OneDrive\\Dokumente\\Elder Scrolls Online\\live\\Logs\\FilteredLog.log");
 
             logger.LogDebug("All done!");
         }

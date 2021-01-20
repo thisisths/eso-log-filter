@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>EsoLogFilter</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="LowFps.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="LowFps.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EsoLogFilter.Core\EsoLogFilter.Core.csproj" />
+    <ProjectReference Include="..\EsoLogFilter.Infrastructure.File\EsoLogFilter.Infrastructure.File.csproj" />
+  </ItemGroup>
+
+</Project>

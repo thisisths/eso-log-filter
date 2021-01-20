@@ -1,4 +1,4 @@
-﻿namespace EsoLogFilter.Infrastructure.File
+﻿namespace EsoLogFilter.Core
 {
     using EsoLogFilter.Core.Services;
 

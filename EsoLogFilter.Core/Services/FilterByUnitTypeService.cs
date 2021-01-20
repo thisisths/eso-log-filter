@@ -66,42 +66,53 @@
         public bool ShouldAddBeginCast(LogEntry logEntry)
         {
             return true;
-            var sourceId = logEntry.GetSourceIdString();
+////            var sourceId = logEntry.GetSourceIdString();
 
-#if DEBUG
-            this.CheckUnitId(logEntry, sourceId);
-#endif
+////#if DEBUG
+////            this.CheckUnitId(logEntry, sourceId);
+////#endif
 
-            return this.idsToAdd.Contains(sourceId);
+////            return this.idsToAdd.Contains(sourceId);
         }
 
         public bool ShouldAddEndCast(LogEntry logEntry)
         {
             return true;
-            var sourceId = logEntry.GetSourceIdString();
+////            var sourceId = logEntry.GetSourceIdString();
 
-#if DEBUG
-            this.CheckUnitId(logEntry, sourceId);
-#endif
+////#if DEBUG
+////            this.CheckUnitId(logEntry, sourceId);
+////#endif
 
-            return this.idsToAdd.Contains(sourceId);
+////            return this.idsToAdd.Contains(sourceId);
         }
 
         public bool ShouldAddEffectChanged(LogEntry logEntry)
         {
             return true;
-            var targetId = logEntry.GetTargetIdString();
+////            var targetId = logEntry.GetTargetIdString();
 
-#if DEBUG
-            this.CheckUnitId(logEntry, targetId);
-#endif
+////#if DEBUG
+////            this.CheckUnitId(logEntry, targetId);
+////#endif
 
-            return this.idsToAdd.Contains(targetId);
+////            return this.idsToAdd.Contains(targetId);
         }
 
         public bool ShouldAddCombatEvent(LogEntry logEntry)
         {
             return true;
+////            var targetId = logEntry.GetTargetIdString();
+
+////#if DEBUG
+////            this.CheckUnitId(logEntry, targetId);
+////#endif
+
+////            return this.idsToAdd.Contains(targetId);
+        }
+
+        public bool ShouldAddHealthRegen(LogEntry logEntry)
+        {
             var targetId = logEntry.GetTargetIdString();
 
 #if DEBUG
