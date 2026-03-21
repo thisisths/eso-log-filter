@@ -20,6 +20,7 @@
             public const string EffectChanged = "EFFECT_CHANGED";
             public const string CombatEvent = "COMBAT_EVENT";
             public const string HealthRegen = "HEALTH_REGEN";
+            public const string EndLog = "END_LOG";
         }
 
         public struct UnitTypes
@@ -35,6 +36,7 @@
             public const string Hostile = "HOSTILE";
             public const string NpcAlly = "NPC_ALLY";
             public const string Friendly = "FRIENDLY";
+            public const string Neutral = "NEUTRAL";
         }
     }
 }

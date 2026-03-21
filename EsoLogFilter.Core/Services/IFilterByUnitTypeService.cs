@@ -20,5 +20,7 @@
         bool ShouldAddEffectChanged(LogEntry logEntry);
 
         bool ShouldAddCombatEvent(LogEntry logEntry);
+
+        bool ShouldAddHealthRegen(LogEntry logEntry);
     }
 }

@@ -45,6 +45,7 @@
                         case LineTypes.AbilityInfo:
                         case LineTypes.EffectInfo:
                         case LineTypes.MapChanged:
+                        case LineTypes.EndLog:
                             writer.WriteLine(logEntry.Line);
                             break;
                         case LineTypes.UnitAdded:
@@ -149,8 +150,10 @@
 
         private void HandleHealthRegen(LogEntry logEntry, StreamWriter writer)
         {
-            // Todo:
-            writer.WriteLine(logEntry.Line);
+            if (this.filterService.ShouldAddHealthRegen(logEntry))
+            {
+                writer.WriteLine(logEntry.Line);
+            }
         }
     }
 }

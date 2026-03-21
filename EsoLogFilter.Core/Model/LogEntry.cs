@@ -63,6 +63,8 @@
                             return UnitTypes.MonsterNpcAlly;
                         case Constants.MonsterTypes.Friendly:
                             return UnitTypes.MonsterFriendly;
+                        case Constants.MonsterTypes.Neutral:
+                            return UnitTypes.MonsterNeutral;
                         default:
                             throw new System.Exception($"Monster type '{monsterTypeString}' unknown!");
                     }
@@ -96,8 +98,11 @@
                     return this.LineArray[6];
                 case LineTypes.CombatEvent:
                     return this.LineArray[9];
+                // Checked
+                case LineTypes.HealthRegen:
+                    return this.LineArray[3];
                 default:
-                    throw new Exception($"Line type '{this.LineType}' does not have a known sourceId");
+                    throw new Exception($"Line type '{this.LineType}' does not have a known targetId");
             }
         }
 
@@ -154,6 +159,9 @@
                     break;
                 case Constants.LineTypes.HealthRegen:
                     this.LineType = LineTypes.HealthRegen;
+                    break;
+                case Constants.LineTypes.EndLog:
+                    this.LineType = LineTypes.EndLog;
                     break;
                 default:
                     throw new System.Exception($"Line type '{lineTypeSting}' unknown!");

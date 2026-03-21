@@ -17,6 +17,7 @@
         EndCast = 12,
         EffectChanged = 13,
         CombatEvent = 14,
-        HealthRegen = 15
+        HealthRegen = 15,
+        EndLog = 16
     }
 }
