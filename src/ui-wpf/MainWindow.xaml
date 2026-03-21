@@ -23,6 +23,11 @@
         <TextBox x:Name="tbTargetFile" Margin="157,216,350,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" IsEnabled="False" Height="18"/>
         <Button x:Name="btnTargetFile" Content="Select" Margin="0,215,252,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="93" Click="btnTargetFile_Click"/>
         <Button x:Name="btnRun" Content="Run" Margin="10,253,252,0" VerticalAlignment="Top" RenderTransformOrigin="0,0.503" Click="btnRun_Click"/>
+        <StackPanel x:Name="pnlLoading" Orientation="Horizontal" Margin="10,253,252,0" VerticalAlignment="Top" Visibility="Collapsed">
+            <ProgressBar IsIndeterminate="True" Width="120" Height="20" Margin="0,0,10,0"/>
+            <Label Content="Working..." Foreground="White" VerticalAlignment="Center" Padding="0"/>
+            <Button x:Name="btnCancel" Content="Cancel" Width="60" Margin="10,0,0,0" Click="btnCancel_Click"/>
+        </StackPanel>
         <Label x:Name="lblError" Content="" Margin="10,278,252,10" Foreground="Black" Background="White"/>
 
     </Grid>

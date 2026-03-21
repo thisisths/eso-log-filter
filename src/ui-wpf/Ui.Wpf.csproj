@@ -5,6 +5,7 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>EsoLogFilter</AssemblyName>
     <TargetPlatformIdentifier>Windows</TargetPlatformIdentifier>
+    <RootNamespace>EsoLogFilter.Ui.Wpf</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,8 +24,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EsoLogFilter.Core\EsoLogFilter.Core.csproj" />
-    <ProjectReference Include="..\EsoLogFilter.Infrastructure.File\EsoLogFilter.Infrastructure.File.csproj" />
+    <ProjectReference Include="..\core\Core.csproj" />
+    <ProjectReference Include="..\infrastructure-file\Infrastructure.File.csproj" />
   </ItemGroup>
 
 </Project>

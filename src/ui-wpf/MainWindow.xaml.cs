@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
+    using System.Threading;
     using System.Windows;
     using EsoLogFilter.Core.Model.Objects;
     using EsoLogFilter.Core.Services;
@@ -15,6 +16,7 @@
     public partial class MainWindow : Window
     {
         private readonly IFileHandler fileHandler;
+        private CancellationTokenSource cancellationTokenSource;
 
         public MainWindow(IFileHandler fileHandler)
         {
@@ -48,9 +50,8 @@
             }
         }
 
-        private void btnRun_Click(object sender, RoutedEventArgs e)
+        private async void btnRun_Click(object sender, RoutedEventArgs e)
         {
-            this.lblError.Content = "Working!";
             var error = new Error();
             var sourceFile = this.tbSourceFile.Text;
             if (string.IsNullOrWhiteSpace(sourceFile))
@@ -66,31 +67,52 @@
             }
 
             var outFile = this.tbTargetFile.Text;
-            if (string.IsNullOrWhiteSpace(sourceFile))
+            if (string.IsNullOrWhiteSpace(outFile))
             {
                 error.Add("Select a target file!");
-            }
-
-            if (!error.HasError)
-            {
-                try
-                {
-                    this.fileHandler.FilterFileByUnitType(sourceFile, unitTypes, outFile);
-                }
-                catch
-                {
-                    error.Add("A unexpected error has occured!");
-                }
             }
 
             if (error.HasError)
             {
                 this.lblError.Content = error.GetMessage();
+                return;
             }
-            else
+
+            this.SetRunningState(true);
+
+            this.cancellationTokenSource = new CancellationTokenSource();
+            try
             {
+                await this.fileHandler.FilterFileByUnitTypeAsync(sourceFile, unitTypes, outFile, this.cancellationTokenSource.Token);
                 this.lblError.Content = "Finished!";
             }
+            catch (OperationCanceledException)
+            {
+                this.lblError.Content = "Cancelled.";
+            }
+            catch
+            {
+                this.lblError.Content = "A unexpected error has occured!";
+            }
+            finally
+            {
+                this.cancellationTokenSource.Dispose();
+                this.cancellationTokenSource = null;
+                this.SetRunningState(false);
+            }
+        }
+
+        private void btnCancel_Click(object sender, RoutedEventArgs e)
+        {
+            this.cancellationTokenSource?.Cancel();
+        }
+
+        private void SetRunningState(bool isRunning)
+        {
+            this.btnRun.Visibility = isRunning ? Visibility.Collapsed : Visibility.Visible;
+            this.pnlLoading.Visibility = isRunning ? Visibility.Visible : Visibility.Collapsed;
+            this.btnSourceFile.IsEnabled = !isRunning;
+            this.btnTargetFile.IsEnabled = !isRunning;
         }
 
         private UnitTypes[] GetUnitTipes()

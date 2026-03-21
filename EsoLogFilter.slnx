@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="src/core/Core.csproj" />
+  <Project Path="src/infrastructure-file/Infrastructure.File.csproj" />
+  <Project Path="src/ui-test-console/Ui.TestConsole.csproj" />
+  <Project Path="src/ui-wpf/Ui.Wpf.csproj" />
+</Solution>
