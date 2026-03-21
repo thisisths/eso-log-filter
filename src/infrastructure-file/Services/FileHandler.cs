@@ -2,6 +2,8 @@
 {
     using System;
     using System.IO;
+    using System.Threading;
+    using System.Threading.Tasks;
     using EsoLogFilter.Core.Model;
     using EsoLogFilter.Core.Model.Objects;
     using EsoLogFilter.Core.Services;
@@ -82,6 +84,75 @@
                     counter++;
                 }
             }
+        }
+
+        public async Task FilterFileByUnitTypeAsync(string inputFile, UnitTypes[] unitTypes, string outputFile, CancellationToken cancellationToken)
+        {
+            this.logger.LogInformation($"Start Filtering '{inputFile}' to '{outputFile}'. Filtered by unit type.");
+
+            await Task.Run(() =>
+            {
+                FileStream inputFileStream = new FileStream(inputFile, FileMode.Open);
+                FileStream outputFileStream = new FileStream(outputFile, FileMode.OpenOrCreate);
+                using (StreamReader reader = new StreamReader(inputFileStream))
+                using (StreamWriter writer = new StreamWriter(outputFileStream))
+                {
+                    int counter = 0;
+                    string line;
+
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        var logEntry = new LogEntry(line);
+
+                        switch (logEntry.LineType)
+                        {
+                            case LineTypes.BeginLog:
+                            case LineTypes.ZoneChanged:
+                            case LineTypes.BeginCombat:
+                            case LineTypes.EndCombat:
+                            case LineTypes.AbilityInfo:
+                            case LineTypes.EffectInfo:
+                            case LineTypes.MapChanged:
+                            case LineTypes.EndLog:
+                                writer.WriteLine(logEntry.Line);
+                                break;
+                            case LineTypes.UnitAdded:
+                                this.HandleUnitAdded(logEntry, unitTypes, writer);
+                                break;
+                            case LineTypes.UnitRemoved:
+                                this.HandleUnitRemoved(logEntry, writer);
+                                break;
+                            case LineTypes.UnitChanged:
+                                this.HandleUnitChanged(logEntry, writer);
+                                break;
+                            case LineTypes.PlayerInfo:
+                                this.HandlePlayerInfo(logEntry, writer);
+                                break;
+                            case LineTypes.BeginCast:
+                                this.HandleBeginCast(logEntry, writer);
+                                break;
+                            case LineTypes.EndCast:
+                                this.HandleEndCast(logEntry, writer);
+                                break;
+                            case LineTypes.EffectChanged:
+                                this.HandleEffectChanged(logEntry, writer);
+                                break;
+                            case LineTypes.CombatEvent:
+                                this.HandleCombatEvent(logEntry, writer);
+                                break;
+                            case LineTypes.HealthRegen:
+                                this.HandleHealthRegen(logEntry, writer);
+                                break;
+                            default:
+                                throw new Exception("Line type unknown");
+                        }
+
+                        counter++;
+                    }
+                }
+            }, cancellationToken);
         }
 
         private void HandleUnitAdded(LogEntry logEntry, UnitTypes[] unitTypes, StreamWriter writer)
