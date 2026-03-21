@@ -1,18 +1,16 @@
-﻿namespace EsoLogFilter.Ui.Wpf
+namespace EsoLogFilter.Ui.Avalonia
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text;
     using System.Threading;
-    using System.Windows;
+    using global::Avalonia.Controls;
+    using global::Avalonia.Interactivity;
+    using global::Avalonia.Platform.Storage;
     using EsoLogFilter.Core.Model.Objects;
     using EsoLogFilter.Core.Services;
-    using EsoLogFilter.Ui.Wpf.Helper;
+    using EsoLogFilter.Ui.Avalonia.Helper;
 
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         private readonly IFileHandler fileHandler;
@@ -24,29 +22,40 @@
             this.fileHandler = fileHandler;
         }
 
-        private void btnSourceFile_Click(object sender, RoutedEventArgs e)
+        private async void btnSourceFile_Click(object sender, RoutedEventArgs e)
         {
-            var openFileDialog = new Microsoft.Win32.OpenFileDialog();
-            openFileDialog.DefaultExt = ".log";
-            openFileDialog.Filter = "LogFiles (.log)|*.log";
-            openFileDialog.CheckFileExists = true;
-            var result = openFileDialog.ShowDialog();
-            if (result.GetValueOrDefault())
+            var files = await this.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
-                this.tbSourceFile.Text = openFileDialog.FileName;
+                Title = "Select Source File",
+                AllowMultiple = false,
+                FileTypeFilter = new[]
+                {
+                    new FilePickerFileType("LogFiles") { Patterns = new[] { "*.log" } }
+                }
+            });
+
+            if (files.Count > 0)
+            {
+                this.tbSourceFile.Text = files[0].Path.LocalPath;
             }
         }
 
-        private void btnTargetFile_Click(object sender, RoutedEventArgs e)
+        private async void btnTargetFile_Click(object sender, RoutedEventArgs e)
         {
-            var openFileDialog = new Microsoft.Win32.SaveFileDialog();
-            openFileDialog.FileName = "Encounter-filtered";
-            openFileDialog.DefaultExt = ".log";
-            openFileDialog.Filter = "LogFiles (.log)|*.log";
-            var result = openFileDialog.ShowDialog();
-            if (result.GetValueOrDefault())
+            var file = await this.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
             {
-                this.tbTargetFile.Text = openFileDialog.FileName;
+                Title = "Select Target File",
+                DefaultExtension = "log",
+                SuggestedFileName = "Encounter-filtered",
+                FileTypeChoices = new[]
+                {
+                    new FilePickerFileType("LogFiles") { Patterns = new[] { "*.log" } }
+                }
+            });
+
+            if (file != null)
+            {
+                this.tbTargetFile.Text = file.Path.LocalPath;
             }
         }
 
@@ -74,7 +83,7 @@
 
             if (error.HasError)
             {
-                this.lblError.Content = error.GetMessage();
+                this.lblError.Text = error.GetMessage();
                 return;
             }
 
@@ -84,15 +93,15 @@
             try
             {
                 await this.fileHandler.FilterFileByUnitTypeAsync(sourceFile, unitTypes, outFile, this.cancellationTokenSource.Token);
-                this.lblError.Content = "Finished!";
+                this.lblError.Text = "Finished!";
             }
             catch (OperationCanceledException)
             {
-                this.lblError.Content = "Cancelled.";
+                this.lblError.Text = "Cancelled.";
             }
             catch
             {
-                this.lblError.Content = "A unexpected error has occured!";
+                this.lblError.Text = "A unexpected error has occured!";
             }
             finally
             {
@@ -109,8 +118,8 @@
 
         private void SetRunningState(bool isRunning)
         {
-            this.btnRun.Visibility = isRunning ? Visibility.Collapsed : Visibility.Visible;
-            this.pnlLoading.Visibility = isRunning ? Visibility.Visible : Visibility.Collapsed;
+            this.btnRun.IsVisible = !isRunning;
+            this.pnlLoading.IsVisible = isRunning;
             this.btnSourceFile.IsEnabled = !isRunning;
             this.btnTargetFile.IsEnabled = !isRunning;
         }

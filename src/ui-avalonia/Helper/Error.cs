@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
 using System.Text;
 
-namespace EsoLogFilter.Ui.Wpf.Helper
+namespace EsoLogFilter.Ui.Avalonia.Helper
 {
     internal class Error
     {

@@ -1,24 +1,19 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <UseWPF>true</UseWPF>
     <AssemblyName>EsoLogFilter</AssemblyName>
-    <TargetPlatformIdentifier>Windows</TargetPlatformIdentifier>
-    <RootNamespace>EsoLogFilter.Ui.Wpf</RootNamespace>
+    <RootNamespace>EsoLogFilter.Ui.Avalonia</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="LowFps.png" />
+    <AvaloniaResource Include="LowFps.png" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="LowFps.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.2.7" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.7" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.7" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.2" />
   </ItemGroup>
