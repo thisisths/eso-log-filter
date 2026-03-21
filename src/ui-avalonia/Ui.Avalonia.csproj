@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>EsoLogFilter</AssemblyName>
+    <RootNamespace>EsoLogFilter.Ui.Avalonia</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="LowFps.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.2.7" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.7" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.7" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\core\Core.csproj" />
+    <ProjectReference Include="..\infrastructure-file\Infrastructure.File.csproj" />
+  </ItemGroup>
+
+</Project>

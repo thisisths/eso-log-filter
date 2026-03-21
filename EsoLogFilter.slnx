@@ -7,4 +7,5 @@
   <Project Path="src/infrastructure-file/Infrastructure.File.csproj" />
   <Project Path="src/ui-test-console/Ui.TestConsole.csproj" />
   <Project Path="src/ui-wpf/Ui.Wpf.csproj" />
+  <Project Path="src/ui-avalonia/Ui.Avalonia.csproj" />
 </Solution>

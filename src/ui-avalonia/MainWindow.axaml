@@ -1,0 +1,29 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="EsoLogFilter.Ui.Avalonia.MainWindow"
+        Title="Eso Log Filter" Height="360" Width="800">
+    <Grid Background="Black">
+        <Image Margin="0,10,10,0" HorizontalAlignment="Right" Width="237" Height="338" VerticalAlignment="Top" Source="/LowFps.png"/>
+        <TextBlock x:Name="lblSourceFile" Text="Source File:" HorizontalAlignment="Left" Margin="10,14,0,0" VerticalAlignment="Top" Width="142" Foreground="White"/>
+        <TextBox x:Name="tbSourceFile" Margin="157,10,350,0" Text="" VerticalAlignment="Top" IsEnabled="False" Height="28"/>
+        <Button x:Name="btnSourceFile" Content="Select" Margin="0,10,252,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="93" Click="btnSourceFile_Click"/>
+        <TextBlock x:Name="lblUnitTypes" Text="Units you want to see in the log:" HorizontalAlignment="Left" Margin="10,45,0,0" VerticalAlignment="Top" Foreground="White"/>
+        <CheckBox x:Name="cbPlayer" Content="Players" HorizontalAlignment="Left" Margin="29,72,0,0" VerticalAlignment="Top" Width="142" Foreground="White" IsChecked="True"/>
+        <CheckBox x:Name="cbMonsterHostile" Content="Monster - Hostile" HorizontalAlignment="Left" Margin="29,92,0,0" VerticalAlignment="Top" Foreground="White"/>
+        <CheckBox x:Name="cbMonsterNpcAlly" Content="Monster - Npc Ally (Pet)" HorizontalAlignment="Left" Margin="29,112,0,0" VerticalAlignment="Top" Foreground="White" IsChecked="True"/>
+        <CheckBox x:Name="cbMonsterFriendly" Content="Monster - Friendly" HorizontalAlignment="Left" Margin="29,132,0,0" VerticalAlignment="Top" Foreground="White"/>
+        <CheckBox x:Name="cbMonsterNeutral" Content="Monster - Neutral" HorizontalAlignment="Left" Margin="29,152,0,0" VerticalAlignment="Top" Foreground="White"/>
+        <CheckBox x:Name="cbObject" Content="Object" HorizontalAlignment="Left" Margin="29,172,0,0" VerticalAlignment="Top" Foreground="White"/>
+        <CheckBox x:Name="cbSiegeWeapon" Content="Siege weapon" HorizontalAlignment="Left" Margin="29,192,0,0" VerticalAlignment="Top" Foreground="White"/>
+        <TextBlock x:Name="lblTargetFile" Text="Target File:" HorizontalAlignment="Left" Margin="10,218,0,0" VerticalAlignment="Top" Foreground="White" Width="142"/>
+        <TextBox x:Name="tbTargetFile" Margin="157,214,350,0" Text="" VerticalAlignment="Top" IsEnabled="False" Height="28"/>
+        <Button x:Name="btnTargetFile" Content="Select" Margin="0,214,252,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="93" Click="btnTargetFile_Click"/>
+        <Button x:Name="btnRun" Content="Run" Margin="10,253,252,0" VerticalAlignment="Top" Click="btnRun_Click"/>
+        <StackPanel x:Name="pnlLoading" Orientation="Horizontal" Margin="10,253,252,0" VerticalAlignment="Top" IsVisible="False">
+            <ProgressBar IsIndeterminate="True" Width="120" Height="20" Margin="0,0,10,0"/>
+            <TextBlock Text="Working..." Foreground="White" VerticalAlignment="Center"/>
+            <Button x:Name="btnCancel" Content="Cancel" Width="60" Margin="10,0,0,0" Click="btnCancel_Click"/>
+        </StackPanel>
+        <TextBlock x:Name="lblError" Text="" Margin="10,283,252,10" Foreground="Black" Background="White" Padding="4"/>
+    </Grid>
+</Window>
