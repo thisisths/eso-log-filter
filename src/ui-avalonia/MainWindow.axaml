@@ -3,7 +3,7 @@
         x:Class="EsoLogFilter.Ui.Avalonia.MainWindow"
         Title="Eso Log Filter" Height="360" Width="800">
     <Grid Background="Black">
-        <Image Margin="0,10,10,0" HorizontalAlignment="Right" Width="237" Height="338" VerticalAlignment="Top" Source="/LowFps.png"/>
+        <Image Margin="0,10,10,0" HorizontalAlignment="Right" Width="237" Height="338" VerticalAlignment="Top" Source="/Slushyborn.png"/>
         <TextBlock x:Name="lblSourceFile" Text="Source File:" HorizontalAlignment="Left" Margin="10,14,0,0" VerticalAlignment="Top" Width="142" Foreground="White"/>
         <TextBox x:Name="tbSourceFile" Margin="157,10,350,0" Text="" VerticalAlignment="Top" IsEnabled="False" Height="28"/>
         <Button x:Name="btnSourceFile" Content="Select" Margin="0,10,252,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="93" Click="btnSourceFile_Click"/>

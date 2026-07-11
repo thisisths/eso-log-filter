@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <AvaloniaResource Include="LowFps.png" />
+    <AvaloniaResource Include="Slushyborn.png" />
   </ItemGroup>
 
   <ItemGroup>
