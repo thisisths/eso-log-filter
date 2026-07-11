@@ -1,10 +1,20 @@
-﻿namespace EsoLogFilter.Core.Model
+namespace EsoLogFilter.Core.Model
 {
     using System;
     using EsoLogFilter.Core.Model.Objects;
 
     public class LogEntry
     {
+        // Number of CSV tokens in an embedded unit-state block:
+        // unitId, health/max, magicka/max, stamina/max, ultimate/max, werewolf/max, shield, posX, posY, heading
+        private const int UnitStateTokenCount = 10;
+
+        // A '*' target block means "target is the same unit as the source".
+        private const string SelfTarget = "*";
+
+        // Unit id 0 means "no unit" (e.g. the target is dead or absent).
+        private const string NoUnitId = "0";
+
         private readonly int arrayLength;
 
         public LogEntry(string line)
@@ -27,15 +37,14 @@
             switch (this.LineType)
             {
                 case LineTypes.UnitAdded:
-                    return this.LineArray[2];
                 case LineTypes.UnitRemoved:
-                    return this.LineArray[2];
                 case LineTypes.UnitChanged:
-                    return this.LineArray[2];
                 case LineTypes.PlayerInfo:
                     return this.LineArray[2];
+                case LineTypes.HealthRegen:
+                    return this.LineArray[3];
                 default:
-                    throw new Exception($"Line type '{this.LineType}' ha no known id");
+                    throw new Exception($"Line type '{this.LineType}' has no known id");
             }
         }
 
@@ -43,7 +52,7 @@
         {
             if (this.LineType != LineTypes.UnitAdded)
             {
-                throw new Exception($"SetUnitType not allowed for line type {this.LineType}");
+                throw new Exception($"GetUnitType not allowed for line type {this.LineType}");
             }
 
             var unitTypeString = this.LineArray[3];
@@ -53,6 +62,7 @@
                 case Constants.UnitTypes.Player:
                     return UnitTypes.Player;
                 case Constants.UnitTypes.Monster:
+                    // The name fields may contain commas, so the reaction is read relative to the line end.
                     var monsterTypeString = this.LineArray[this.arrayLength - 2];
 
                     switch (monsterTypeString)
@@ -66,14 +76,14 @@
                         case Constants.MonsterTypes.Neutral:
                             return UnitTypes.MonsterNeutral;
                         default:
-                            throw new System.Exception($"Monster type '{monsterTypeString}' unknown!");
+                            return UnitTypes.Unknown;
                     }
                 case Constants.UnitTypes.Object:
                     return UnitTypes.Object;
                 case Constants.UnitTypes.SiegeWeapon:
                     return UnitTypes.SiegeWeapon;
                 default:
-                    throw new System.Exception($"Unit type '{unitTypeString}' unknown!");
+                    return UnitTypes.Unknown;
             }
         }
 
@@ -82,9 +92,10 @@
             switch (this.LineType)
             {
                 case LineTypes.BeginCast:
+                case LineTypes.EffectChanged:
                     return this.LineArray[6];
-                case LineTypes.EndCast:
-                    return this.LineArray[4];
+                case LineTypes.CombatEvent:
+                    return this.LineArray[9];
                 default:
                     throw new Exception($"Line type '{this.LineType}' does not have a known sourceId");
             }
@@ -92,25 +103,60 @@
 
         public string GetTargetIdString()
         {
+            // The target unit-state block follows the source block and collapses to a
+            // single '*' token when the target is the source unit itself.
             switch (this.LineType)
             {
+                case LineTypes.BeginCast:
                 case LineTypes.EffectChanged:
-                    return this.LineArray[6];
+                    return this.GetTargetToken(6 + UnitStateTokenCount);
                 case LineTypes.CombatEvent:
-                    return this.LineArray[9];
-                // Checked
-                case LineTypes.HealthRegen:
-                    return this.LineArray[3];
+                    return this.GetTargetToken(9 + UnitStateTokenCount);
                 default:
                     throw new Exception($"Line type '{this.LineType}' does not have a known targetId");
             }
         }
 
+        public string GetEffectiveTargetIdString()
+        {
+            var targetId = this.GetTargetIdString();
+
+            if (targetId == SelfTarget || targetId == NoUnitId)
+            {
+                return this.GetSourceIdString();
+            }
+
+            return targetId;
+        }
+
+        public string GetCastTrackId()
+        {
+            switch (this.LineType)
+            {
+                case LineTypes.BeginCast:
+                    return this.LineArray[4];
+                case LineTypes.EndCast:
+                    return this.LineArray[3];
+                default:
+                    throw new Exception($"Line type '{this.LineType}' does not have a castTrackId");
+            }
+        }
+
+        private string GetTargetToken(int index)
+        {
+            if (index >= this.arrayLength)
+            {
+                return SelfTarget;
+            }
+
+            return this.LineArray[index];
+        }
+
         private void SetLineType()
         {
-            var lineTypeSting = this.LineArray[1];
+            var lineTypeString = this.LineArray[1];
 
-            switch (lineTypeSting)
+            switch (lineTypeString)
             {
                 case Constants.LineTypes.BeginLog:
                     this.LineType = LineTypes.BeginLog;
@@ -163,8 +209,20 @@
                 case Constants.LineTypes.EndLog:
                     this.LineType = LineTypes.EndLog;
                     break;
+                case Constants.LineTypes.TrialInit:
+                    this.LineType = LineTypes.TrialInit;
+                    break;
+                case Constants.LineTypes.BeginTrial:
+                    this.LineType = LineTypes.BeginTrial;
+                    break;
+                case Constants.LineTypes.EndTrial:
+                    this.LineType = LineTypes.EndTrial;
+                    break;
                 default:
-                    throw new System.Exception($"Line type '{lineTypeSting}' unknown!");
+                    // Record types this app does not know yet (e.g. added by a game update)
+                    // are passed through unchanged instead of aborting the whole filter run.
+                    this.LineType = LineTypes.Unknown;
+                    break;
             }
         }
     }

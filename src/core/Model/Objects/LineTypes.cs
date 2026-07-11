@@ -2,9 +2,10 @@
 {
     public enum LineTypes
     {
+        Unknown = -1,
         BeginLog = 0,
         ZoneChanged = 1,
-        UnitAdded =2,
+        UnitAdded = 2,
         UnitRemoved = 3,
         UnitChanged = 4,
         BeginCombat = 5,
@@ -18,6 +19,9 @@
         EffectChanged = 13,
         CombatEvent = 14,
         HealthRegen = 15,
-        EndLog = 16
+        EndLog = 16,
+        TrialInit = 17,
+        BeginTrial = 18,
+        EndTrial = 19
     }
 }

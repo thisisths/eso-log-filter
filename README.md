@@ -14,8 +14,16 @@ ESO combat logs can grow very large and contain entries for many different unit 
   - Monster - Neutral
   - Object
   - Siege Weapon
+- Optionally also filter combat/effect events of hidden units (experimental) — see [docs/filtering.md](docs/filtering.md)
 - Simple file picker for source and target files
 - Async processing with cancel support
+
+## Documentation
+
+- [How the filter works](docs/filtering.md)
+- [Architecture](docs/architecture.md)
+- [Development and releases](docs/development.md)
+- [Roadmap / ideas](docs/roadmap.md)
 
 ## Installation
 

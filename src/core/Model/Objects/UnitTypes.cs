@@ -2,6 +2,7 @@
 {
     public enum UnitTypes
     {
+        Unknown = 0,
         Player = 1,
         MonsterHostile = 2,
         MonsterNpcAlly = 3,

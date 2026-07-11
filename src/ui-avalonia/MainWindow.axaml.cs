@@ -68,7 +68,7 @@ namespace EsoLogFilter.Ui.Avalonia
                 error.Add("Select a source file!");
             }
 
-            var unitTypes = this.GetUnitTipes();
+            var unitTypes = this.GetUnitTypes();
 
             if (!unitTypes.Any())
             {
@@ -89,10 +89,12 @@ namespace EsoLogFilter.Ui.Avalonia
 
             this.SetRunningState(true);
 
+            var filterCombatEvents = this.cbFilterEvents.IsChecked.GetValueOrDefault();
+
             this.cancellationTokenSource = new CancellationTokenSource();
             try
             {
-                await this.fileHandler.FilterFileByUnitTypeAsync(sourceFile, unitTypes, outFile, this.cancellationTokenSource.Token);
+                await this.fileHandler.FilterFileByUnitTypeAsync(sourceFile, unitTypes, outFile, filterCombatEvents, this.cancellationTokenSource.Token);
                 this.lblError.Text = "Finished!";
             }
             catch (OperationCanceledException)
@@ -101,7 +103,7 @@ namespace EsoLogFilter.Ui.Avalonia
             }
             catch
             {
-                this.lblError.Text = "A unexpected error has occured!";
+                this.lblError.Text = "An unexpected error has occurred!";
             }
             finally
             {
@@ -124,7 +126,7 @@ namespace EsoLogFilter.Ui.Avalonia
             this.btnTargetFile.IsEnabled = !isRunning;
         }
 
-        private UnitTypes[] GetUnitTipes()
+        private UnitTypes[] GetUnitTypes()
         {
             var unitTypes = new List<UnitTypes>();
 

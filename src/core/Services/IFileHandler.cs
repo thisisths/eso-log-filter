@@ -1,4 +1,4 @@
-﻿namespace EsoLogFilter.Core.Services
+namespace EsoLogFilter.Core.Services
 {
     using System.Threading;
     using System.Threading.Tasks;
@@ -6,8 +6,8 @@
 
     public interface IFileHandler
     {
-        void FilterFileByUnitType(string inputFile, UnitTypes[] unitTypes, string outputFile);
+        void FilterFileByUnitType(string inputFile, UnitTypes[] unitTypes, string outputFile, bool filterCombatEvents);
 
-        Task FilterFileByUnitTypeAsync(string inputFile, UnitTypes[] unitTypes, string outputFile, CancellationToken cancellationToken);
+        Task FilterFileByUnitTypeAsync(string inputFile, UnitTypes[] unitTypes, string outputFile, bool filterCombatEvents, CancellationToken cancellationToken);
     }
 }

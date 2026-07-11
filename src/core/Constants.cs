@@ -21,6 +21,9 @@
             public const string CombatEvent = "COMBAT_EVENT";
             public const string HealthRegen = "HEALTH_REGEN";
             public const string EndLog = "END_LOG";
+            public const string TrialInit = "TRIAL_INIT";
+            public const string BeginTrial = "BEGIN_TRIAL";
+            public const string EndTrial = "END_TRIAL";
         }
 
         public struct UnitTypes
