@@ -42,9 +42,11 @@ upload, so a bad filter run is caught locally instead of on
   the same rule ESO Logs applies. That is why the two columns differ although
   the event lines are identical in default mode.
 - Pets, summons and sieges count toward their owning player.
-- Enemy players are logged without name; they are aggregated into one
-  **(anonymous players)** row, because their unit ids are no stable identities.
-  Damage from NPCs lands in **(non-player sources)**.
+- Enemy players are logged without name, but each person still gets their own
+  row — **(anonymous #n)** — keyed by the log's per-session player id, which is
+  stable across re-registrations and unique per person within one log. The ids
+  are not comparable between different logs. Damage from NPCs lands in
+  **(non-player sources)**.
 
 ## Why the comparison is count-based, not a text diff
 

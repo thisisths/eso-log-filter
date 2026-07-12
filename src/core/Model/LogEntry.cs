@@ -155,6 +155,17 @@ namespace EsoLogFilter.Core.Model
             return long.TryParse(this.LineArray[5], out var hitValue) ? hitValue : 0;
         }
 
+        public string GetPlayerPerSessionIdString()
+        {
+            if (this.LineType != LineTypes.UnitAdded)
+            {
+                throw new Exception($"GetPlayerPerSessionIdString not allowed for line type {this.LineType}");
+            }
+
+            // Safe by index: field 5 sits before the quoted name fields.
+            return this.LineArray[5];
+        }
+
         public string GetOwnerUnitIdString()
         {
             // The name fields may contain commas, so the ownerUnitId is read

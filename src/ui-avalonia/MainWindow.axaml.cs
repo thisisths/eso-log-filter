@@ -335,7 +335,8 @@ namespace EsoLogFilter.Ui.Avalonia
                 ? TimeSpan.FromMilliseconds(fight.EndMs.Value - fight.StartMs.Value).ToString(@"m\:ss")
                 : "?";
 
-            // Counts named players only — anonymous enemies and NPCs are buckets.
+            // Every player counts — named or "(anonymous #n)" — but not the
+            // NPC bucket or the anonymous fallback bucket.
             var players = fight.DamageBySourcePlayer.Keys.Count(
                 key => key != LogSummary.NonPlayerSourcesKey && key != LogSummary.AnonymousPlayersKey);
 

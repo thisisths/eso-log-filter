@@ -68,9 +68,12 @@ makes the filtered file's summary show the effective upload without simulating
 anything. Further rules, each deliberate: only real damage results count
 (`FALL_DAMAGE` is excluded as self-inflicted), pets/summons/siege resolve to
 their owning player via `ownerUnitId`, and nameless players (enemies in
-Cyrodiil) are aggregated into one "(anonymous players)" bucket because their
-unit ids are no stable identities — the same person reappears under new ids,
-so per-id rows would fake precision that is not there.
+Cyrodiil) are keyed per person as "(anonymous #n)" by `playerPerSessionId` —
+their unit ids are no stable identities (the same person reappears under new
+ids), but the per-session player id is: verified on a real raid log, 1,153
+anonymous registrations collapse to 214 persons with zero id collisions
+against named players. A nameless player without a per-session id (never
+observed) would fall back to one shared "(anonymous players)" bucket.
 
 ## Determinism as the regression harness
 

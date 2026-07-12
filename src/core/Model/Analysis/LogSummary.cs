@@ -14,10 +14,14 @@ namespace EsoLogFilter.Core.Model.Analysis
         // (guards, walls, siege NPCs, ...).
         public const string NonPlayerSourcesKey = "(non-player sources)";
 
-        // Bucket for players registered without name and display name — enemy
-        // players in Cyrodiil. Their unit ids are no stable identities (the same
-        // person can appear under several ids), so they are aggregated instead
-        // of shown as pseudo-individual rows.
+        // Players registered without name and display name — enemy players in
+        // Cyrodiil — are keyed per person as "(anonymous #<playerPerSessionId>)":
+        // the per-session player id is stable across re-registrations and never
+        // collides between different persons. The shared key below is only the
+        // fallback for the (never observed) case of a nameless player without a
+        // per-session id.
+        public const string AnonymousPlayerKeyPrefix = "(anonymous #";
+
         public const string AnonymousPlayersKey = "(anonymous players)";
 
         public long FileSizeBytes { get; set; }

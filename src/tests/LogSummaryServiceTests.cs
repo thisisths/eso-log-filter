@@ -127,16 +127,42 @@ namespace EsoLogFilter.Tests
         }
 
         [Fact]
-        public void AnonymousPlayers_AreAggregatedIntoOneBucket()
+        public void AnonymousPlayers_AreDistinguishedByPerSessionId()
         {
-            var anonymousHitsPlayer = "80006,COMBAT_EVENT,DAMAGE,MAGIC,1,999,0,0,16415,50,20000/20000,0/0,0/0,0/0,0/0,0,0.6000,0.6000,2.0000,1,10000/10000,5000/5000,5000/5000,100/500,0/1000,0,0.5000,0.5000,1.0000";
+            // The same person (perSessionId 2) re-registered under a new unitId,
+            // plus a different person (perSessionId 9).
+            var samePersonReAdded = "301,UNIT_ADDED,51,PLAYER,F,2,0,F,3,7,\"\",\"\",0,50,810,0,HOSTILE,F";
+            var otherAnonymousPlayer = "302,UNIT_ADDED,52,PLAYER,F,9,0,F,1,4,\"\",\"\",0,50,900,0,HOSTILE,F";
+            var unit50HitsPlayer = "80006,COMBAT_EVENT,DAMAGE,MAGIC,1,999,0,0,16415,50,20000/20000,0/0,0/0,0/0,0/0,0,0.6000,0.6000,2.0000,1,10000/10000,5000/5000,5000/5000,100/500,0/1000,0,0.5000,0.5000,1.0000";
+            var unit51HitsPlayer = "80007,COMBAT_EVENT,DAMAGE,MAGIC,1,999,0,0,16415,51,20000/20000,0/0,0/0,0/0,0/0,0,0.6000,0.6000,2.0000,1,10000/10000,5000/5000,5000/5000,100/500,0/1000,0,0.5000,0.5000,1.0000";
+            var unit52HitsPlayer = "80008,COMBAT_EVENT,DAMAGE,MAGIC,1,500,0,0,16415,52,20000/20000,0/0,0/0,0/0,0/0,0,0.6000,0.6000,2.0000,1,10000/10000,5000/5000,5000/5000,100/500,0/1000,0,0.5000,0.5000,1.0000";
 
             var summary = this.Summarize(
                 TestLogLines.UnitAddedPlayer,
                 TestLogLines.UnitAddedAnonymousPlayer,
-                anonymousHitsPlayer);
+                samePersonReAdded,
+                otherAnonymousPlayer,
+                unit50HitsPlayer,
+                unit51HitsPlayer,
+                unit52HitsPlayer);
 
-            Assert.Equal(999, summary.DamageBySourcePlayer[LogSummary.AnonymousPlayersKey]);
+            Assert.Equal(999 + 999, summary.DamageBySourcePlayer["(anonymous #2)"]);
+            Assert.Equal(500, summary.DamageBySourcePlayer["(anonymous #9)"]);
+            Assert.False(summary.DamageBySourcePlayer.ContainsKey(LogSummary.AnonymousPlayersKey));
+        }
+
+        [Fact]
+        public void AnonymousPlayerWithoutPerSessionId_FallsBackToTheSharedBucket()
+        {
+            var playerWithoutAnyId = "303,UNIT_ADDED,53,PLAYER,F,0,0,F,0,0,\"\",\"\",0,50,810,0,HOSTILE,F";
+            var unit53HitsPlayer = "80009,COMBAT_EVENT,DAMAGE,MAGIC,1,777,0,0,16415,53,20000/20000,0/0,0/0,0/0,0/0,0,0.6000,0.6000,2.0000,1,10000/10000,5000/5000,5000/5000,100/500,0/1000,0,0.5000,0.5000,1.0000";
+
+            var summary = this.Summarize(
+                TestLogLines.UnitAddedPlayer,
+                playerWithoutAnyId,
+                unit53HitsPlayer);
+
+            Assert.Equal(777, summary.DamageBySourcePlayer[LogSummary.AnonymousPlayersKey]);
         }
 
         [Fact]

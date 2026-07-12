@@ -132,6 +132,15 @@ namespace EsoLogFilter.Tests
         }
 
         [Theory]
+        [InlineData(TestLogLines.UnitAddedPlayer, "1")]
+        [InlineData(TestLogLines.UnitAddedAnonymousPlayer, "2")]
+        [InlineData(TestLogLines.UnitAddedHostile, "0")]
+        public void GetPlayerPerSessionIdString_ReturnsPerSessionId(string line, string expected)
+        {
+            Assert.Equal(expected, new LogEntry(line).GetPlayerPerSessionIdString());
+        }
+
+        [Theory]
         [InlineData(TestLogLines.UnitAddedPlayer, "0")]
         [InlineData(TestLogLines.UnitAddedPlayerPet, "1")]
         [InlineData(TestLogLines.UnitAddedEnemyPet, "777")]

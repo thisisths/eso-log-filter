@@ -97,7 +97,18 @@ namespace EsoLogFilter.Core.Services
             {
                 var displayName = logEntry.GetUnitDisplayName();
                 var key = !string.IsNullOrEmpty(displayName) ? displayName : logEntry.GetUnitName();
-                this.sourcePlayerKeyByUnitId[unitId] = !string.IsNullOrEmpty(key) ? key : LogSummary.AnonymousPlayersKey;
+
+                if (string.IsNullOrEmpty(key))
+                {
+                    // Nameless enemy players are still individuals: the per-session
+                    // player id distinguishes them across re-registrations.
+                    var perSessionId = logEntry.GetPlayerPerSessionIdString();
+                    key = perSessionId != NoUnitId && !string.IsNullOrEmpty(perSessionId)
+                        ? LogSummary.AnonymousPlayerKeyPrefix + perSessionId + ")"
+                        : LogSummary.AnonymousPlayersKey;
+                }
+
+                this.sourcePlayerKeyByUnitId[unitId] = key;
                 return;
             }
 

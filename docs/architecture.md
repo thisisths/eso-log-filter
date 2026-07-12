@@ -38,6 +38,7 @@ Design points:
 - **Stateful within one run.** `FilterByUnitTypeService` remembers which unit ids were kept or dropped (decided at their `UNIT_ADDED` line) so later lines referencing those units get the same verdict. `Reset()` is called at the start of every run.
 - **Fail-open for unknown input.** Record types, unit types, or reactions the parser does not recognize are passed through unchanged instead of aborting the run — a game update that adds new record types cannot break existing filtering.
 - **Cancellation.** The async variant used by the GUI checks the `CancellationToken` per line, so Cancel reacts immediately even on huge files.
+- **Progress.** The async variants accept an `IProgress<double>` (fraction 0–1, bytes read / file size, reported every 50k lines). The GUI maps it to real progress bars; Analyze shows the first file as 0–50 % and the second as 50–100 %.
 
 The Preview tab uses a second, read-only flow (see [preview.md](preview.md)):
 
@@ -56,5 +57,5 @@ filtered .log   ──> FileSummarizer.SummarizeCore ──> LogSummary ─┴�
 
 - New record type that needs special handling: `core/Constants.cs`, `core/Model/Objects/LineTypes.cs`, `core/Model/LogEntry.cs` (`SetLineType`), and the `switch` in `infrastructure-file/Services/FileHandler.cs`.
 - Filter semantics: `core/Services/FilterByUnitTypeService.cs` (covered by `src/tests`).
-- Preview aggregates: `core/Model/Analysis/LogSummary.cs` and `core/Services/LogSummaryService.cs` (covered by `src/tests`).
-- GUI: `ui-avalonia/MainWindow.axaml(.cs)` — the Filter and Preview tabs.
+- Preview aggregates: `core/Model/Analysis/LogSummary.cs`, `core/Model/Analysis/FightSummary.cs` and `core/Services/LogSummaryService.cs` (covered by `src/tests`).
+- GUI: `ui-avalonia/MainWindow.axaml(.cs)` — the Filter and Preview tabs; the preview tables bind preformatted row models from `ui-avalonia/Model/` (`SummaryRow`, `DamageRow`, `FightRow`).
