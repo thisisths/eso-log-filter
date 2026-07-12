@@ -10,7 +10,21 @@ namespace EsoLogFilter.Core.Model.Analysis
     /// </summary>
     public class LogSummary
     {
+        // Bucket for damage whose source is no player and not owned by one
+        // (guards, walls, siege NPCs, ...).
+        public const string NonPlayerSourcesKey = "(non-player sources)";
+
+        // Bucket for players registered without name and display name — enemy
+        // players in Cyrodiil. Their unit ids are no stable identities (the same
+        // person can appear under several ids), so they are aggregated instead
+        // of shown as pseudo-individual rows.
+        public const string AnonymousPlayersKey = "(anonymous players)";
+
         public long FileSizeBytes { get; set; }
+
+        // Absolute Unix epoch in ms from BEGIN_LOG; every other timestamp in the
+        // file is an offset relative to it. 0 when the file has no BEGIN_LOG.
+        public long EpochMs { get; set; }
 
         public long TotalLines { get; set; }
 
@@ -23,6 +37,13 @@ namespace EsoLogFilter.Core.Model.Analysis
         public int FightCount { get; set; }
 
         public long CombatTimeMs { get; set; }
+
+        public List<FightSummary> Fights { get; } = new List<FightSummary>();
+
+        // Whole-log damage per source player; see FightSummary for the key rules.
+        // Only hits on registered units are counted, mirroring how ESO Logs
+        // attributes events.
+        public Dictionary<string, long> DamageBySourcePlayer { get; } = new Dictionary<string, long>();
 
         public long GetTotalUnitCount()
         {

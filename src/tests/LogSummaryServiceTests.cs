@@ -84,20 +84,141 @@ namespace EsoLogFilter.Tests
         }
 
         [Fact]
+        public void ParsesTheEpochFromBeginLog()
+        {
+            var summary = this.Summarize(TestLogLines.BeginLog);
+
+            Assert.Equal(1783021379102, summary.EpochMs);
+        }
+
+        [Fact]
+        public void RecordsFightStartAndEnd()
+        {
+            var summary = this.Summarize(TestLogLines.BeginCombat, TestLogLines.EndCombat);
+
+            var fight = Assert.Single(summary.Fights);
+            Assert.Equal(1, fight.Index);
+            Assert.Equal(1000, fight.StartMs);
+            Assert.Equal(61000, fight.EndMs);
+        }
+
+        [Fact]
+        public void DamageIsAttributedToTheSourcePlayer()
+        {
+            var summary = this.Summarize(
+                TestLogLines.UnitAddedPlayer,
+                TestLogLines.UnitAddedHostile,
+                TestLogLines.CombatEventPlayerHitsHostile);
+
+            Assert.Equal(2500, summary.DamageBySourcePlayer["@janedoe"]);
+        }
+
+        [Fact]
+        public void PetDamage_CountsTowardTheOwner()
+        {
+            var summary = this.Summarize(
+                TestLogLines.UnitAddedPlayer,
+                TestLogLines.UnitAddedPlayerPet,
+                TestLogLines.UnitAddedHostile,
+                TestLogLines.CombatEventPlayerHitsHostile,
+                TestLogLines.CombatEventPetHitsHostile);
+
+            Assert.Equal(2500 + 1200, summary.DamageBySourcePlayer["@janedoe"]);
+        }
+
+        [Fact]
+        public void AnonymousPlayers_AreAggregatedIntoOneBucket()
+        {
+            var anonymousHitsPlayer = "80006,COMBAT_EVENT,DAMAGE,MAGIC,1,999,0,0,16415,50,20000/20000,0/0,0/0,0/0,0/0,0,0.6000,0.6000,2.0000,1,10000/10000,5000/5000,5000/5000,100/500,0/1000,0,0.5000,0.5000,1.0000";
+
+            var summary = this.Summarize(
+                TestLogLines.UnitAddedPlayer,
+                TestLogLines.UnitAddedAnonymousPlayer,
+                anonymousHitsPlayer);
+
+            Assert.Equal(999, summary.DamageBySourcePlayer[LogSummary.AnonymousPlayersKey]);
+        }
+
+        [Fact]
+        public void NonPlayerDamage_LandsInTheSharedBucket()
+        {
+            var summary = this.Summarize(
+                TestLogLines.UnitAddedPlayer,
+                TestLogLines.UnitAddedHostile,
+                TestLogLines.CombatEventHostileHitsPlayer);
+
+            Assert.Equal(1800, summary.DamageBySourcePlayer[LogSummary.NonPlayerSourcesKey]);
+        }
+
+        [Fact]
+        public void DamageToAnUnregisteredTarget_DoesNotCount()
+        {
+            // No UNIT_ADDED for the hostile target — this is what the filtered
+            // file looks like, and ESO Logs would not attribute the hit either.
+            var summary = this.Summarize(
+                TestLogLines.UnitAddedPlayer,
+                TestLogLines.CombatEventPlayerHitsHostile);
+
+            Assert.Empty(summary.DamageBySourcePlayer);
+        }
+
+        [Fact]
+        public void FallDamage_IsNotCounted()
+        {
+            var summary = this.Summarize(
+                TestLogLines.UnitAddedPlayer,
+                TestLogLines.CombatEventFallDamage);
+
+            Assert.Empty(summary.DamageBySourcePlayer);
+        }
+
+        [Fact]
+        public void NonDamageResults_AreNotCounted()
+        {
+            var summary = this.Summarize(
+                TestLogLines.UnitAddedPlayer,
+                TestLogLines.CombatEventSelfPlayer);
+
+            Assert.Empty(summary.DamageBySourcePlayer);
+        }
+
+        [Fact]
+        public void DamageIsScopedToTheCurrentFight()
+        {
+            var summary = this.Summarize(
+                TestLogLines.UnitAddedPlayer,
+                TestLogLines.UnitAddedHostile,
+                TestLogLines.BeginCombat,
+                TestLogLines.CombatEventPlayerHitsHostile,
+                TestLogLines.EndCombat,
+                TestLogLines.CombatEventPlayerHitsHostile);
+
+            var fight = Assert.Single(summary.Fights);
+            Assert.Equal(2500, fight.DamageBySourcePlayer["@janedoe"]);
+            Assert.Equal(5000, summary.DamageBySourcePlayer["@janedoe"]);
+        }
+
+        [Fact]
         public void Reset_ClearsThePreviousRun()
         {
             this.Summarize(
                 TestLogLines.BeginLog,
                 TestLogLines.UnitAddedPlayer,
+                TestLogLines.UnitAddedHostile,
                 TestLogLines.BeginCombat,
+                TestLogLines.CombatEventPlayerHitsHostile,
                 TestLogLines.EndCombat);
 
-            var summary = this.Summarize(TestLogLines.BeginLog);
+            // The units of the first run are no longer registered, so the same
+            // damage event must not count in the second run.
+            var summary = this.Summarize(TestLogLines.BeginLog, TestLogLines.CombatEventPlayerHitsHostile);
 
-            Assert.Equal(1, summary.TotalLines);
+            Assert.Equal(2, summary.TotalLines);
             Assert.Equal(0, summary.GetTotalUnitCount());
             Assert.Equal(0, summary.FightCount);
             Assert.Equal(0, summary.CombatTimeMs);
+            Assert.Empty(summary.Fights);
+            Assert.Empty(summary.DamageBySourcePlayer);
         }
 
         [Fact]

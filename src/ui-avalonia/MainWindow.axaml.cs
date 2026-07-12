@@ -31,10 +31,14 @@ namespace EsoLogFilter.Ui.Avalonia
             (UnitTypes.Unknown, "Unknown"),
         };
 
+        private const double DamageBarWidth = 120.0;
+
         private readonly IFileHandler fileHandler;
         private readonly IFileSummarizer fileSummarizer;
         private CancellationTokenSource cancellationTokenSource;
         private CancellationTokenSource analyzeCancellationTokenSource;
+        private LogSummary previewUnfiltered;
+        private LogSummary previewFiltered;
 
         public MainWindow(IFileHandler fileHandler, IFileSummarizer fileSummarizer)
         {
@@ -104,10 +108,13 @@ namespace EsoLogFilter.Ui.Avalonia
 
             var filterCombatEvents = this.cbFilterEvents.IsChecked.GetValueOrDefault();
 
+            this.pbFilter.Value = 0;
+            var progress = new Progress<double>(fraction => this.pbFilter.Value = fraction * 100);
+
             this.cancellationTokenSource = new CancellationTokenSource();
             try
             {
-                await this.fileHandler.FilterFileByUnitTypeAsync(sourceFile, unitTypes, outFile, filterCombatEvents, this.cancellationTokenSource.Token);
+                await this.fileHandler.FilterFileByUnitTypeAsync(sourceFile, unitTypes, outFile, filterCombatEvents, progress, this.cancellationTokenSource.Token);
                 this.lblError.Text = "Finished!";
 
                 // Prefill the preview tab so the fresh pair can be analyzed directly.
@@ -179,12 +186,16 @@ namespace EsoLogFilter.Ui.Avalonia
             this.SetAnalyzingState(true);
             this.lblPreviewError.Text = "";
 
+            this.pbAnalyze.Value = 0;
+            var unfilteredProgress = new Progress<double>(fraction => this.pbAnalyze.Value = fraction * 50);
+            var filteredProgress = new Progress<double>(fraction => this.pbAnalyze.Value = 50 + (fraction * 50));
+
             this.analyzeCancellationTokenSource = new CancellationTokenSource();
             try
             {
                 // Sequential on purpose: the summary service is stateful per pass.
-                var unfiltered = await this.fileSummarizer.SummarizeFileAsync(unfilteredFile, this.analyzeCancellationTokenSource.Token);
-                var filtered = await this.fileSummarizer.SummarizeFileAsync(filteredFile, this.analyzeCancellationTokenSource.Token);
+                var unfiltered = await this.fileSummarizer.SummarizeFileAsync(unfilteredFile, unfilteredProgress, this.analyzeCancellationTokenSource.Token);
+                var filtered = await this.fileSummarizer.SummarizeFileAsync(filteredFile, filteredProgress, this.analyzeCancellationTokenSource.Token);
 
                 this.BuildPreview(unfiltered, filtered);
             }
@@ -274,6 +285,143 @@ namespace EsoLogFilter.Ui.Avalonia
 
             this.icUnitRows.ItemsSource = BuildUnitRows(unfiltered, filtered, culture);
             this.icRecordRows.ItemsSource = BuildRecordRows(unfiltered, filtered, culture);
+
+            this.previewUnfiltered = unfiltered;
+            this.previewFiltered = filtered;
+            this.lbFights.ItemsSource = BuildFightRows(unfiltered, culture);
+            this.lbFights.SelectedIndex = 0;
+            this.RebuildDamageRows();
+        }
+
+        private void lbFights_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            this.RebuildDamageRows();
+        }
+
+        private void RebuildDamageRows()
+        {
+            if (this.previewUnfiltered == null || !(this.lbFights.SelectedItem is FightRow fightRow))
+            {
+                return;
+            }
+
+            var unfilteredDamage = GetScopedDamage(this.previewUnfiltered, fightRow.FightIndex);
+            var filteredDamage = GetScopedDamage(this.previewFiltered, fightRow.FightIndex);
+            this.icDamageRows.ItemsSource = BuildDamageRows(unfilteredDamage, filteredDamage, CultureInfo.CurrentCulture);
+        }
+
+        private static List<FightRow> BuildFightRows(LogSummary unfiltered, CultureInfo culture)
+        {
+            var rows = new List<FightRow>
+            {
+                new FightRow($"Whole log · {unfiltered.FightCount.ToString("N0", culture)} fights", -1),
+            };
+
+            foreach (var fight in unfiltered.Fights)
+            {
+                rows.Add(new FightRow(BuildFightLabel(fight, unfiltered.EpochMs), fight.Index));
+            }
+
+            return rows;
+        }
+
+        private static string BuildFightLabel(FightSummary fight, long epochMs)
+        {
+            var start = fight.StartMs.HasValue && epochMs > 0
+                ? DateTimeOffset.FromUnixTimeMilliseconds(epochMs + fight.StartMs.Value).ToLocalTime().ToString("HH:mm")
+                : "--:--";
+
+            var duration = fight.StartMs.HasValue && fight.EndMs.HasValue && fight.EndMs.Value >= fight.StartMs.Value
+                ? TimeSpan.FromMilliseconds(fight.EndMs.Value - fight.StartMs.Value).ToString(@"m\:ss")
+                : "?";
+
+            // Counts named players only — anonymous enemies and NPCs are buckets.
+            var players = fight.DamageBySourcePlayer.Keys.Count(
+                key => key != LogSummary.NonPlayerSourcesKey && key != LogSummary.AnonymousPlayersKey);
+
+            return $"#{fight.Index} · {start} · {duration} · {players} players";
+        }
+
+        private static Dictionary<string, long> GetScopedDamage(LogSummary summary, int fightIndex)
+        {
+            if (fightIndex < 0)
+            {
+                return summary.DamageBySourcePlayer;
+            }
+
+            // The fights of the two files are matched by index; BEGIN_COMBAT and
+            // END_COMBAT lines are never filtered, so the lists line up. A pair
+            // that does not (e.g. two unrelated files) falls back to no damage.
+            var fight = summary.Fights.FirstOrDefault(f => f.Index == fightIndex);
+            return fight != null ? fight.DamageBySourcePlayer : new Dictionary<string, long>();
+        }
+
+        private static List<DamageRow> BuildDamageRows(Dictionary<string, long> unfilteredDamage, Dictionary<string, long> filteredDamage, CultureInfo culture)
+        {
+            long GetValue(Dictionary<string, long> damageByKey, string key) => damageByKey.TryGetValue(key, out var value) ? value : 0;
+
+            var keys = unfilteredDamage.Keys
+                .Union(filteredDamage.Keys)
+                .OrderByDescending(key => GetValue(unfilteredDamage, key))
+                .ThenBy(key => key)
+                .ToList();
+
+            var maxTotal = keys.Select(key => GetValue(unfilteredDamage, key)).DefaultIfEmpty(0).Max();
+
+            var rows = new List<DamageRow>();
+
+            foreach (var key in keys)
+            {
+                var total = GetValue(unfilteredDamage, key);
+                var counted = GetValue(filteredDamage, key);
+
+                var barWidth = maxTotal > 0 ? DamageBarWidth * total / maxTotal : 0;
+                var fillFraction = total > 0 ? Math.Clamp((double)counted / total, 0, 1) : 0;
+                var fillWidth = barWidth * fillFraction;
+
+                rows.Add(new DamageRow(
+                    key,
+                    FormatDamage(total, culture),
+                    FormatDamage(counted, culture),
+                    FormatDamage(total - counted, culture),
+                    fillWidth,
+                    barWidth - fillWidth));
+            }
+
+            var totalSum = keys.Sum(key => GetValue(unfilteredDamage, key));
+            var countedSum = keys.Sum(key => GetValue(filteredDamage, key));
+            rows.Add(new DamageRow(
+                "Total",
+                FormatDamage(totalSum, culture),
+                FormatDamage(countedSum, culture),
+                FormatDamage(totalSum - countedSum, culture),
+                0,
+                0,
+                isTotal: true));
+
+            return rows;
+        }
+
+        private static string FormatDamage(long value, CultureInfo culture)
+        {
+            if (value == 0)
+            {
+                return "—";
+            }
+
+            var absolute = Math.Abs(value);
+
+            if (absolute >= 1_000_000)
+            {
+                return (value / 1_000_000.0).ToString("N1", culture) + " M";
+            }
+
+            if (absolute >= 10_000)
+            {
+                return (value / 1_000.0).ToString("N0", culture) + " k";
+            }
+
+            return value.ToString("N0", culture);
         }
 
         private static List<SummaryRow> BuildUnitRows(LogSummary unfiltered, LogSummary filtered, CultureInfo culture)

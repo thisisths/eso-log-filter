@@ -5,15 +5,14 @@ Rough backlog, in no particular order. No promises — see the disclaimer in the
 
 ## Local analysis (long-term goal)
 
-Analyze a raid log locally without uploading it anywhere. First step shipped
-2026-07: the [Preview tab](preview.md) compares an unfiltered/filtered pair
-(sizes, lines, units per category, record types, fight count). Still open:
+Analyze a raid log locally without uploading it anywhere. Shipped 2026-07: the
+[Preview tab](preview.md) compares an unfiltered/filtered pair (sizes, lines,
+units per category, record types) including a damage-per-source-player table
+with a fight list that scopes it to a single `BEGIN_COMBAT`/`END_COMBAT` block.
+Still open:
 
-- Per-fight summaries (`BEGIN_COMBAT`/`END_COMBAT` blocks): duration, involved
-  players, damage done/taken — and a fight list that scopes the Preview tables
-  to a single fight.
-- Damage-to-players breakdown per source player — the main PvP question ("who
-  actually hits enemy players?").
+- Per-fight drill-down: abilities, damage *taken*, deaths.
+- Healing tables (damage only so far).
 - Top-target tables (which enemies received the most damage/healing).
 - Export as CSV/HTML instead of only a filtered log.
 
@@ -25,8 +24,6 @@ Analyze a raid log locally without uploading it anywhere. First step shipped
 
 ## Usability
 
-- Progress bar with real progress (bytes read / file size) instead of the
-  indeterminate spinner.
 - Drag & drop for the source file; prefill the target filename next to the
   source file.
 - Remember the last used settings.

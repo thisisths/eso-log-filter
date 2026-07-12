@@ -1,5 +1,6 @@
 namespace EsoLogFilter.Core.Services
 {
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using EsoLogFilter.Core.Model.Objects;
@@ -8,6 +9,6 @@ namespace EsoLogFilter.Core.Services
     {
         void FilterFileByUnitType(string inputFile, UnitTypes[] unitTypes, string outputFile, bool filterCombatEvents);
 
-        Task FilterFileByUnitTypeAsync(string inputFile, UnitTypes[] unitTypes, string outputFile, bool filterCombatEvents, CancellationToken cancellationToken);
+        Task FilterFileByUnitTypeAsync(string inputFile, UnitTypes[] unitTypes, string outputFile, bool filterCombatEvents, IProgress<double> progress, CancellationToken cancellationToken);
     }
 }

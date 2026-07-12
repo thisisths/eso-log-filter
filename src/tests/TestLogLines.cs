@@ -15,6 +15,12 @@ namespace EsoLogFilter.Tests
         // unitId 15908, MONSTER with reaction NPC_ALLY (a player pet)
         public const string UnitAddedPet = "191,UNIT_ADDED,15908,MONSTER,F,0,33152,F,0,0,\"Twilight Matriarch\",\"\",0,50,160,15906,NPC_ALLY,F";
 
+        // unitId 15910, MONSTER with reaction NPC_ALLY owned by unit 1 (the player above)
+        public const string UnitAddedPlayerPet = "200,UNIT_ADDED,15910,MONSTER,F,0,32982,F,0,0,\"Volatile Familiar\",\"\",0,50,160,1,NPC_ALLY,F";
+
+        // unitId 50, PLAYER without name and displayName (an enemy player in Cyrodiil)
+        public const string UnitAddedAnonymousPlayer = "300,UNIT_ADDED,50,PLAYER,F,2,0,F,3,7,\"\",\"\",0,50,810,0,HOSTILE,F";
+
         // unitId 15956, MONSTER with reaction HOSTILE and no owner (an NPC, e.g. a guard)
         public const string UnitAddedHostile = "6554,UNIT_ADDED,15956,MONSTER,F,0,51854,F,0,0,\"Dominion Mender\",\"\",0,50,160,0,HOSTILE,F";
 
@@ -56,6 +62,12 @@ namespace EsoLogFilter.Tests
 
         // source unitId 15956 (hostile), target unitId 1 (player)
         public const string CombatEventHostileHitsPlayer = "80003,COMBAT_EVENT,DAMAGE,PHYSICAL,1,1800,0,0,16415,15956,20000/20000,0/0,0/0,0/0,0/0,0,0.6000,0.6000,2.0000,1,10000/10000,5000/5000,5000/5000,100/500,0/1000,0,0.5000,0.5000,1.0000";
+
+        // source unitId 15910 (the player pet above), target unitId 15956 (hostile)
+        public const string CombatEventPetHitsHostile = "80004,COMBAT_EVENT,DAMAGE,SHOCK,1,1200,0,0,23304,15910,20000/20000,0/0,0/0,0/0,0/0,0,0.5000,0.5000,1.0000,15956,20000/20000,0/0,0/0,0/0,0/0,0,0.6000,0.6000,2.0000";
+
+        // source unitId 1 (player), target '*' — self-inflicted fall damage
+        public const string CombatEventFallDamage = "80005,COMBAT_EVENT,FALL_DAMAGE,PHYSICAL,1,3000,0,0,0,1,10000/10000,5000/5000,5000/5000,100/500,0/1000,0,0.5000,0.5000,1.0000,*";
 
         // source unitId 1 (player), dead target (unitId 0) -> effective target is the source
         public const string CombatEventDeadTarget = "81000,COMBAT_EVENT,DAMAGE,PHYSICAL,1,2500,0,0,16415,1,10000/10000,5000/5000,5000/5000,100/500,0/1000,0,0.5000,0.5000,1.0000,0,0/0,0/0,0/0,0/0,0/0,0,0.0000,0.0000,0.0000";

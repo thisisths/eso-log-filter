@@ -40,7 +40,7 @@ namespace EsoLogFilter.Ui.TestConsole
             logger.LogInformation($"Units: [{string.Join(", ", unitTypes)}], filterCombatEvents: {filterCombatEvents}");
 
             var fileHandler = serviceProvider.GetService<IFileHandler>();
-            await fileHandler.FilterFileByUnitTypeAsync(inputFile, unitTypes, outputFile, filterCombatEvents, CancellationToken.None);
+            await fileHandler.FilterFileByUnitTypeAsync(inputFile, unitTypes, outputFile, filterCombatEvents, progress: null, CancellationToken.None);
 
             logger.LogInformation("All done!");
             return 0;

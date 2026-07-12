@@ -134,6 +134,51 @@ namespace EsoLogFilter.Core.Model
             return targetId;
         }
 
+        public string GetCombatResult()
+        {
+            if (this.LineType != LineTypes.CombatEvent)
+            {
+                throw new Exception($"GetCombatResult not allowed for line type {this.LineType}");
+            }
+
+            return this.LineArray[2];
+        }
+
+        public long GetHitValue()
+        {
+            if (this.LineType != LineTypes.CombatEvent)
+            {
+                throw new Exception($"GetHitValue not allowed for line type {this.LineType}");
+            }
+
+            // Malformed values count as 0 instead of aborting the run (fail-open).
+            return long.TryParse(this.LineArray[5], out var hitValue) ? hitValue : 0;
+        }
+
+        public string GetOwnerUnitIdString()
+        {
+            // The name fields may contain commas, so the ownerUnitId is read
+            // relative to the line end (reaction is at len-2, owner at len-3).
+            switch (this.LineType)
+            {
+                case LineTypes.UnitAdded:
+                case LineTypes.UnitChanged:
+                    return this.LineArray[this.arrayLength - 3];
+                default:
+                    throw new Exception($"Line type '{this.LineType}' does not have an ownerUnitId");
+            }
+        }
+
+        public string GetUnitName()
+        {
+            return this.GetQuotedField(0);
+        }
+
+        public string GetUnitDisplayName()
+        {
+            return this.GetQuotedField(1);
+        }
+
         public string GetCastTrackId()
         {
             switch (this.LineType)
@@ -145,6 +190,43 @@ namespace EsoLogFilter.Core.Model
                 default:
                     throw new Exception($"Line type '{this.LineType}' does not have a castTrackId");
             }
+        }
+
+        // UNIT_ADDED/UNIT_CHANGED carry exactly two quoted fields: name, then
+        // displayName. Names may contain commas but never double quotes, so the
+        // fields are extracted between quote pairs instead of by CSV index.
+        private string GetQuotedField(int fieldIndex)
+        {
+            if (this.LineType != LineTypes.UnitAdded && this.LineType != LineTypes.UnitChanged)
+            {
+                throw new Exception($"Line type '{this.LineType}' has no quoted name fields");
+            }
+
+            var searchFrom = 0;
+
+            for (var i = 0; i <= fieldIndex; i++)
+            {
+                var start = this.Line.IndexOf('"', searchFrom);
+                if (start < 0)
+                {
+                    return string.Empty;
+                }
+
+                var end = this.Line.IndexOf('"', start + 1);
+                if (end < 0)
+                {
+                    return string.Empty;
+                }
+
+                if (i == fieldIndex)
+                {
+                    return this.Line.Substring(start + 1, end - start - 1);
+                }
+
+                searchFrom = end + 1;
+            }
+
+            return string.Empty;
         }
 
         private string GetTargetToken(int index)

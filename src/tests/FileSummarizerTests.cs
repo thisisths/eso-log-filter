@@ -60,12 +60,25 @@ namespace EsoLogFilter.Tests
                 TestLogLines.CombatEventPlayerHitsHostile);
 
             var syncSummary = this.fileSummarizer.SummarizeFile(input);
-            var asyncSummary = await this.fileSummarizer.SummarizeFileAsync(input, CancellationToken.None);
+            var asyncSummary = await this.fileSummarizer.SummarizeFileAsync(input, progress: null, CancellationToken.None);
 
             Assert.Equal(syncSummary.TotalLines, asyncSummary.TotalLines);
             Assert.Equal(syncSummary.FileSizeBytes, asyncSummary.FileSizeBytes);
             Assert.Equal(syncSummary.GetTotalUnitCount(), asyncSummary.GetTotalUnitCount());
             Assert.Equal(syncSummary.LinesByRecordType, asyncSummary.LinesByRecordType);
+        }
+
+        [Fact]
+        public async Task ReportsProgressEndingAtOneHundredPercent()
+        {
+            var input = this.WriteInputFile(TestLogLines.BeginLog, TestLogLines.UnitAddedPlayer);
+            var progress = new TestProgress();
+
+            await this.fileSummarizer.SummarizeFileAsync(input, progress, CancellationToken.None);
+
+            Assert.NotEmpty(progress.Reports);
+            Assert.Equal(1.0, progress.Reports[^1]);
+            Assert.All(progress.Reports, fraction => Assert.InRange(fraction, 0.0, 1.0));
         }
 
         [Fact]

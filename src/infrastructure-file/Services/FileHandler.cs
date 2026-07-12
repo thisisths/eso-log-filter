@@ -1,5 +1,6 @@
 namespace EsoLogFilter.Infrastructure.File.Services
 {
+    using System;
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
@@ -11,6 +12,9 @@ namespace EsoLogFilter.Infrastructure.File.Services
 
     public class FileHandler : IFileHandler
     {
+        // Roughly every 2 % on a raid-night log; cheap enough to not matter.
+        private const int ProgressReportLineInterval = 50_000;
+
         private readonly ILogger<FileHandler> logger;
         private readonly IFilterByUnitTypeService filterService;
 
@@ -24,17 +28,17 @@ namespace EsoLogFilter.Infrastructure.File.Services
         {
             this.logger.LogInformation($"Start Filtering '{inputFile}' to '{outputFile}'. Filtered by unit type.");
 
-            this.FilterCore(inputFile, unitTypes, outputFile, filterCombatEvents, CancellationToken.None);
+            this.FilterCore(inputFile, unitTypes, outputFile, filterCombatEvents, null, CancellationToken.None);
         }
 
-        public async Task FilterFileByUnitTypeAsync(string inputFile, UnitTypes[] unitTypes, string outputFile, bool filterCombatEvents, CancellationToken cancellationToken)
+        public async Task FilterFileByUnitTypeAsync(string inputFile, UnitTypes[] unitTypes, string outputFile, bool filterCombatEvents, IProgress<double> progress, CancellationToken cancellationToken)
         {
             this.logger.LogInformation($"Start Filtering '{inputFile}' to '{outputFile}'. Filtered by unit type.");
 
-            await Task.Run(() => this.FilterCore(inputFile, unitTypes, outputFile, filterCombatEvents, cancellationToken), cancellationToken);
+            await Task.Run(() => this.FilterCore(inputFile, unitTypes, outputFile, filterCombatEvents, progress, cancellationToken), cancellationToken);
         }
 
-        private void FilterCore(string inputFile, UnitTypes[] unitTypes, string outputFile, bool filterCombatEvents, CancellationToken cancellationToken)
+        private void FilterCore(string inputFile, UnitTypes[] unitTypes, string outputFile, bool filterCombatEvents, IProgress<double> progress, CancellationToken cancellationToken)
         {
             this.filterService.Reset();
 
@@ -43,6 +47,8 @@ namespace EsoLogFilter.Infrastructure.File.Services
             using (StreamReader reader = new StreamReader(inputFileStream))
             using (StreamWriter writer = new StreamWriter(outputFileStream))
             {
+                var fileLength = inputFileStream.Length;
+                long lineCount = 0;
                 string line;
 
                 while ((line = reader.ReadLine()) != null)
@@ -55,8 +61,17 @@ namespace EsoLogFilter.Infrastructure.File.Services
                     {
                         writer.WriteLine(logEntry.Line);
                     }
+
+                    // The stream position is the bytes buffered from the file, so
+                    // it slightly leads the current line — fine for a progress bar.
+                    if (progress != null && ++lineCount % ProgressReportLineInterval == 0 && fileLength > 0)
+                    {
+                        progress.Report((double)inputFileStream.Position / fileLength);
+                    }
                 }
             }
+
+            progress?.Report(1);
         }
 
         private bool ShouldWrite(LogEntry logEntry, UnitTypes[] unitTypes, bool filterCombatEvents)

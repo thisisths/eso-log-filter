@@ -59,6 +59,19 @@ analysis. It also keeps the summarizer read-only by construction, so the
 byte-identical filter guarantee cannot be affected by preview features. At
 ~2 s per 400 MB file the extra pass is cheap.
 
+## Damage attribution mirrors ESO Logs
+
+The Preview tab's damage table (2026-07) counts an event only when its
+effective target is registered via `UNIT_ADDED` in the file being summarized —
+the rule ESO Logs applies when it ignores events of unregistered units. This
+makes the filtered file's summary show the effective upload without simulating
+anything. Further rules, each deliberate: only real damage results count
+(`FALL_DAMAGE` is excluded as self-inflicted), pets/summons/siege resolve to
+their owning player via `ownerUnitId`, and nameless players (enemies in
+Cyrodiil) are aggregated into one "(anonymous players)" bucket because their
+unit ids are no stable identities — the same person reappears under new ids,
+so per-id rows would fake precision that is not there.
+
 ## Determinism as the regression harness
 
 Same input + same settings ⇒ byte-identical output, always. This makes old

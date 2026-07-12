@@ -112,5 +112,51 @@ namespace EsoLogFilter.Tests
         {
             Assert.Equal(expected, new LogEntry(line).GetCastTrackId());
         }
+
+        [Theory]
+        [InlineData(TestLogLines.CombatEventPlayerHitsHostile, "DAMAGE")]
+        [InlineData(TestLogLines.CombatEventSelfPlayer, "POWER_ENERGIZE")]
+        [InlineData(TestLogLines.CombatEventFallDamage, "FALL_DAMAGE")]
+        public void GetCombatResult_ReturnsResultToken(string line, string expected)
+        {
+            Assert.Equal(expected, new LogEntry(line).GetCombatResult());
+        }
+
+        [Theory]
+        [InlineData(TestLogLines.CombatEventPlayerHitsHostile, 2500)]
+        [InlineData(TestLogLines.CombatEventHostileHitsPlayer, 1800)]
+        [InlineData(TestLogLines.CombatEventPetHitsHostile, 1200)]
+        public void GetHitValue_ReturnsHitValue(string line, long expected)
+        {
+            Assert.Equal(expected, new LogEntry(line).GetHitValue());
+        }
+
+        [Theory]
+        [InlineData(TestLogLines.UnitAddedPlayer, "0")]
+        [InlineData(TestLogLines.UnitAddedPlayerPet, "1")]
+        [InlineData(TestLogLines.UnitAddedEnemyPet, "777")]
+        [InlineData(TestLogLines.UnitAddedEnemyPetNameWithComma, "777")] // comma in the name must not shift the owner
+        public void GetOwnerUnitIdString_ReturnsOwner(string line, string expected)
+        {
+            Assert.Equal(expected, new LogEntry(line).GetOwnerUnitIdString());
+        }
+
+        [Theory]
+        [InlineData(TestLogLines.UnitAddedPlayer, "Jane Doe")]
+        [InlineData(TestLogLines.UnitAddedHostile, "Dominion Mender")]
+        [InlineData(TestLogLines.UnitAddedEnemyPetNameWithComma, "Matriarch, the Dark")]
+        public void GetUnitName_ReturnsNameEvenWithCommas(string line, string expected)
+        {
+            Assert.Equal(expected, new LogEntry(line).GetUnitName());
+        }
+
+        [Theory]
+        [InlineData(TestLogLines.UnitAddedPlayer, "@janedoe")]
+        [InlineData(TestLogLines.UnitAddedHostile, "")]
+        [InlineData(TestLogLines.UnitAddedEnemyPetNameWithComma, "")]
+        public void GetUnitDisplayName_ReturnsDisplayName(string line, string expected)
+        {
+            Assert.Equal(expected, new LogEntry(line).GetUnitDisplayName());
+        }
     }
 }

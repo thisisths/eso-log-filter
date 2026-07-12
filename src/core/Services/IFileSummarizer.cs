@@ -1,5 +1,6 @@
 namespace EsoLogFilter.Core.Services
 {
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using EsoLogFilter.Core.Model.Analysis;
@@ -8,6 +9,6 @@ namespace EsoLogFilter.Core.Services
     {
         LogSummary SummarizeFile(string inputFile);
 
-        Task<LogSummary> SummarizeFileAsync(string inputFile, CancellationToken cancellationToken);
+        Task<LogSummary> SummarizeFileAsync(string inputFile, IProgress<double> progress, CancellationToken cancellationToken);
     }
 }

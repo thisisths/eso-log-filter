@@ -140,9 +140,23 @@ namespace EsoLogFilter.Tests
             var asyncOutput = this.GetOutputPath();
 
             this.fileHandler.FilterFileByUnitType(input, PlayersAndPets, syncOutput, filterCombatEvents: true);
-            await this.fileHandler.FilterFileByUnitTypeAsync(input, PlayersAndPets, asyncOutput, filterCombatEvents: true, CancellationToken.None);
+            await this.fileHandler.FilterFileByUnitTypeAsync(input, PlayersAndPets, asyncOutput, filterCombatEvents: true, progress: null, CancellationToken.None);
 
             Assert.Equal(File.ReadAllLines(syncOutput), File.ReadAllLines(asyncOutput));
+        }
+
+        [Fact]
+        public async Task ReportsProgressEndingAtOneHundredPercent()
+        {
+            var input = this.WriteInputFile(TestLogLines.BeginLog, TestLogLines.UnitAddedPlayer);
+            var output = this.GetOutputPath();
+            var progress = new TestProgress();
+
+            await this.fileHandler.FilterFileByUnitTypeAsync(input, PlayersAndPets, output, filterCombatEvents: false, progress, CancellationToken.None);
+
+            Assert.NotEmpty(progress.Reports);
+            Assert.Equal(1.0, progress.Reports[^1]);
+            Assert.All(progress.Reports, fraction => Assert.InRange(fraction, 0.0, 1.0));
         }
 
         private string WriteInputFile(params string[] lines)
