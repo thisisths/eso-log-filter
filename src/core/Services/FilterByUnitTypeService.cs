@@ -1,135 +1,96 @@
-﻿namespace EsoLogFilter.Core.Services
+namespace EsoLogFilter.Core.Services
 {
     using System.Collections.Generic;
     using System.Linq;
     using EsoLogFilter.Core.Model;
     using EsoLogFilter.Core.Model.Objects;
-    
+
     public class FilterByUnitTypeService : IFilterByUnitTypeService
     {
-        private readonly List<string> idsToAdd;
-        private readonly List<string> idsToFilter;
+        private readonly HashSet<string> keptUnitIds = new HashSet<string>();
+        private readonly HashSet<string> droppedUnitIds = new HashSet<string>();
+        private readonly HashSet<string> droppedCastTrackIds = new HashSet<string>();
 
-        public FilterByUnitTypeService()
+        public void Reset()
         {
-            this.idsToAdd = new List<string>();
-            this.idsToFilter = new List<string>();
+            this.keptUnitIds.Clear();
+            this.droppedUnitIds.Clear();
+            this.droppedCastTrackIds.Clear();
         }
 
         public bool IsUnitInFilterAndAdd(LogEntry logEntry, UnitTypes[] unitTypes)
         {
             var unitType = logEntry.GetUnitType();
+            var unitId = logEntry.GetIdString();
 
-            if (unitTypes.Contains(unitType))
+            // Units of unknown type are kept: silently dropping data the parser does
+            // not understand would corrupt the output.
+            if (unitType == UnitTypes.Unknown || unitTypes.Contains(unitType))
             {
-                this.idsToAdd.Add(logEntry.GetIdString());
+                this.keptUnitIds.Add(unitId);
+                this.droppedUnitIds.Remove(unitId);
                 return true;
             }
 
-            this.idsToFilter.Add(logEntry.GetIdString());
+            this.droppedUnitIds.Add(unitId);
+            this.keptUnitIds.Remove(unitId);
             return false;
         }
 
         public bool ShouldAddUnitRemoved(LogEntry logEntry)
         {
-            var unitId = logEntry.GetIdString();
-
-#if DEBUG
-            this.CheckUnitId(logEntry, unitId);
-#endif
-
-            return this.idsToAdd.Contains(unitId);
+            return this.keptUnitIds.Contains(logEntry.GetIdString());
         }
 
         public bool ShouldAddUnitChanged(LogEntry logEntry)
         {
-            var unitId = logEntry.GetIdString();
-
-#if DEBUG
-            this.CheckUnitId(logEntry, unitId);
-#endif
-
-            return this.idsToAdd.Contains(unitId);
+            return this.keptUnitIds.Contains(logEntry.GetIdString());
         }
 
         public bool ShouldAddPlayerInfo(LogEntry logEntry)
         {
-            var unitId = logEntry.GetIdString();
-
-#if DEBUG
-            this.CheckUnitId(logEntry, unitId);
-#endif
-
-            return this.idsToAdd.Contains(unitId);
-        }
-
-        public bool ShouldAddBeginCast(LogEntry logEntry)
-        {
-            return true;
-////            var sourceId = logEntry.GetSourceIdString();
-
-////#if DEBUG
-////            this.CheckUnitId(logEntry, sourceId);
-////#endif
-
-////            return this.idsToAdd.Contains(sourceId);
-        }
-
-        public bool ShouldAddEndCast(LogEntry logEntry)
-        {
-            return true;
-////            var sourceId = logEntry.GetSourceIdString();
-
-////#if DEBUG
-////            this.CheckUnitId(logEntry, sourceId);
-////#endif
-
-////            return this.idsToAdd.Contains(sourceId);
-        }
-
-        public bool ShouldAddEffectChanged(LogEntry logEntry)
-        {
-            return true;
-////            var targetId = logEntry.GetTargetIdString();
-
-////#if DEBUG
-////            this.CheckUnitId(logEntry, targetId);
-////#endif
-
-////            return this.idsToAdd.Contains(targetId);
-        }
-
-        public bool ShouldAddCombatEvent(LogEntry logEntry)
-        {
-            return true;
-////            var targetId = logEntry.GetTargetIdString();
-
-////#if DEBUG
-////            this.CheckUnitId(logEntry, targetId);
-////#endif
-
-////            return this.idsToAdd.Contains(targetId);
+            return this.keptUnitIds.Contains(logEntry.GetIdString());
         }
 
         public bool ShouldAddHealthRegen(LogEntry logEntry)
         {
-            var targetId = logEntry.GetTargetIdString();
-
-#if DEBUG
-            this.CheckUnitId(logEntry, targetId);
-#endif
-
-            return this.idsToAdd.Contains(targetId);
+            return this.keptUnitIds.Contains(logEntry.GetIdString());
         }
 
-#if DEBUG
-        private void CheckUnitId(LogEntry logEntry, string unitId)
+        public bool ShouldAddBeginCast(LogEntry logEntry)
         {
-            if (!this.idsToAdd.Contains(unitId) && !this.idsToFilter.Contains(unitId))
+            var shouldAdd = this.ShouldAddEvent(logEntry);
+
+            if (!shouldAdd)
             {
-                throw new System.Exception($"unknown UnitId '{unitId}': Line: {logEntry.Line}");
+                // Remember the cast so its END_CAST lines can be dropped as well.
+                this.droppedCastTrackIds.Add(logEntry.GetCastTrackId());
             }
+
+            return shouldAdd;
         }
-#endif
+
+        public bool ShouldAddEndCast(LogEntry logEntry)
+        {
+            return !this.droppedCastTrackIds.Contains(logEntry.GetCastTrackId());
+        }
+
+        public bool ShouldAddEffectChanged(LogEntry logEntry)
+        {
+            return this.ShouldAddEvent(logEntry);
+        }
+
+        public bool ShouldAddCombatEvent(LogEntry logEntry)
+        {
+            return this.ShouldAddEvent(logEntry);
+        }
+
+        private bool ShouldAddEvent(LogEntry logEntry)
+        {
+            // Drop only events whose effective target is a unit the user deselected.
+            // Events referencing units never seen in a UNIT_ADDED line are kept to
+            // stay on the safe side (e.g. logs that start mid-session).
+            return !this.droppedUnitIds.Contains(logEntry.GetEffectiveTargetIdString());
+        }
     }
 }

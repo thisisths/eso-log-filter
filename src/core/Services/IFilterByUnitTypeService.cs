@@ -1,10 +1,12 @@
-﻿namespace EsoLogFilter.Core.Services
+namespace EsoLogFilter.Core.Services
 {
     using EsoLogFilter.Core.Model;
     using EsoLogFilter.Core.Model.Objects;
 
     public interface IFilterByUnitTypeService
     {
+        void Reset();
+
         bool IsUnitInFilterAndAdd(LogEntry logEntry, UnitTypes[] unitTypes);
 
         bool ShouldAddUnitRemoved(LogEntry logEntry);

@@ -9,7 +9,9 @@
     {
         public static IServiceCollection AddInfrastructureFile(this IServiceCollection @this)
         {
-            return @this.AddScoped<IFileHandler, FileHandler>();
+            return @this
+                .AddScoped<IFileHandler, FileHandler>()
+                .AddScoped<IFileSummarizer, FileSummarizer>();
         }
     }
 }

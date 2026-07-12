@@ -1,4 +1,4 @@
-﻿namespace EsoLogFilter.Infrastructure.File.Services
+namespace EsoLogFilter.Infrastructure.File.Services
 {
     using System;
     using System.IO;
@@ -12,6 +12,9 @@
 
     public class FileHandler : IFileHandler
     {
+        // Roughly every 2 % on a raid-night log; cheap enough to not matter.
+        private const int ProgressReportLineInterval = 50_000;
+
         private readonly ILogger<FileHandler> logger;
         private readonly IFilterByUnitTypeService filterService;
 
@@ -21,209 +24,82 @@
             this.filterService = filterService;
         }
 
-        public void FilterFileByUnitType(string inputFile, UnitTypes[] unitTypes, string outputFile)
+        public void FilterFileByUnitType(string inputFile, UnitTypes[] unitTypes, string outputFile, bool filterCombatEvents)
         {
             this.logger.LogInformation($"Start Filtering '{inputFile}' to '{outputFile}'. Filtered by unit type.");
 
+            this.FilterCore(inputFile, unitTypes, outputFile, filterCombatEvents, null, CancellationToken.None);
+        }
+
+        public async Task FilterFileByUnitTypeAsync(string inputFile, UnitTypes[] unitTypes, string outputFile, bool filterCombatEvents, IProgress<double> progress, CancellationToken cancellationToken)
+        {
+            this.logger.LogInformation($"Start Filtering '{inputFile}' to '{outputFile}'. Filtered by unit type.");
+
+            await Task.Run(() => this.FilterCore(inputFile, unitTypes, outputFile, filterCombatEvents, progress, cancellationToken), cancellationToken);
+        }
+
+        private void FilterCore(string inputFile, UnitTypes[] unitTypes, string outputFile, bool filterCombatEvents, IProgress<double> progress, CancellationToken cancellationToken)
+        {
+            this.filterService.Reset();
 
             FileStream inputFileStream = new FileStream(inputFile, FileMode.Open);
-            FileStream outputFileStream = new FileStream(outputFile, FileMode.OpenOrCreate);
+            FileStream outputFileStream = new FileStream(outputFile, FileMode.Create);
             using (StreamReader reader = new StreamReader(inputFileStream))
             using (StreamWriter writer = new StreamWriter(outputFileStream))
             {
-                int counter = 0;
+                var fileLength = inputFileStream.Length;
+                long lineCount = 0;
                 string line;
 
                 while ((line = reader.ReadLine()) != null)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     var logEntry = new LogEntry(line);
 
-                    switch (logEntry.LineType)
+                    if (this.ShouldWrite(logEntry, unitTypes, filterCombatEvents))
                     {
-                        case LineTypes.BeginLog:
-                        case LineTypes.ZoneChanged:
-                        case LineTypes.BeginCombat:
-                        case LineTypes.EndCombat:
-                        case LineTypes.AbilityInfo:
-                        case LineTypes.EffectInfo:
-                        case LineTypes.MapChanged:
-                        case LineTypes.EndLog:
-                            writer.WriteLine(logEntry.Line);
-                            break;
-                        case LineTypes.UnitAdded:
-                            this.HandleUnitAdded(logEntry, unitTypes, writer);
-                            break;
-                        case LineTypes.UnitRemoved:
-                            this.HandleUnitRemoved(logEntry, writer);
-                            break;
-                        case LineTypes.UnitChanged:
-                            this.HandleUnitChanged(logEntry, writer);
-                            break;
-                        case LineTypes.PlayerInfo:
-                            this.HandlePlayerInfo(logEntry, writer);
-                            break;
-                        case LineTypes.BeginCast:
-                            this.HandleBeginCast(logEntry, writer);
-                            break;
-                        case LineTypes.EndCast:
-                            this.HandleEndCast(logEntry, writer);
-                            break;
-                        case LineTypes.EffectChanged:
-                            this.HandleEffectChanged(logEntry, writer);
-                            break;
-                        case LineTypes.CombatEvent:
-                            this.HandleCombatEvent(logEntry, writer);
-                            break;
-                        case LineTypes.HealthRegen:
-                            this.HandleHealthRegen(logEntry, writer);
-                            break;
-                        default:
-                            throw new Exception("Line type unknown");
+                        writer.WriteLine(logEntry.Line);
                     }
 
-                    counter++;
-                }
-            }
-        }
-
-        public async Task FilterFileByUnitTypeAsync(string inputFile, UnitTypes[] unitTypes, string outputFile, CancellationToken cancellationToken)
-        {
-            this.logger.LogInformation($"Start Filtering '{inputFile}' to '{outputFile}'. Filtered by unit type.");
-
-            await Task.Run(() =>
-            {
-                FileStream inputFileStream = new FileStream(inputFile, FileMode.Open);
-                FileStream outputFileStream = new FileStream(outputFile, FileMode.OpenOrCreate);
-                using (StreamReader reader = new StreamReader(inputFileStream))
-                using (StreamWriter writer = new StreamWriter(outputFileStream))
-                {
-                    int counter = 0;
-                    string line;
-
-                    while ((line = reader.ReadLine()) != null)
+                    // The stream position is the bytes buffered from the file, so
+                    // it slightly leads the current line — fine for a progress bar.
+                    if (progress != null && ++lineCount % ProgressReportLineInterval == 0 && fileLength > 0)
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        var logEntry = new LogEntry(line);
-
-                        switch (logEntry.LineType)
-                        {
-                            case LineTypes.BeginLog:
-                            case LineTypes.ZoneChanged:
-                            case LineTypes.BeginCombat:
-                            case LineTypes.EndCombat:
-                            case LineTypes.AbilityInfo:
-                            case LineTypes.EffectInfo:
-                            case LineTypes.MapChanged:
-                            case LineTypes.EndLog:
-                                writer.WriteLine(logEntry.Line);
-                                break;
-                            case LineTypes.UnitAdded:
-                                this.HandleUnitAdded(logEntry, unitTypes, writer);
-                                break;
-                            case LineTypes.UnitRemoved:
-                                this.HandleUnitRemoved(logEntry, writer);
-                                break;
-                            case LineTypes.UnitChanged:
-                                this.HandleUnitChanged(logEntry, writer);
-                                break;
-                            case LineTypes.PlayerInfo:
-                                this.HandlePlayerInfo(logEntry, writer);
-                                break;
-                            case LineTypes.BeginCast:
-                                this.HandleBeginCast(logEntry, writer);
-                                break;
-                            case LineTypes.EndCast:
-                                this.HandleEndCast(logEntry, writer);
-                                break;
-                            case LineTypes.EffectChanged:
-                                this.HandleEffectChanged(logEntry, writer);
-                                break;
-                            case LineTypes.CombatEvent:
-                                this.HandleCombatEvent(logEntry, writer);
-                                break;
-                            case LineTypes.HealthRegen:
-                                this.HandleHealthRegen(logEntry, writer);
-                                break;
-                            default:
-                                throw new Exception("Line type unknown");
-                        }
-
-                        counter++;
+                        progress.Report((double)inputFileStream.Position / fileLength);
                     }
                 }
-            }, cancellationToken);
-        }
-
-        private void HandleUnitAdded(LogEntry logEntry, UnitTypes[] unitTypes, StreamWriter writer)
-        {
-            if (this.filterService.IsUnitInFilterAndAdd(logEntry, unitTypes))
-            {
-                writer.WriteLine(logEntry.Line);
             }
+
+            progress?.Report(1);
         }
 
-        private void HandleUnitRemoved(LogEntry logEntry, StreamWriter writer)
+        private bool ShouldWrite(LogEntry logEntry, UnitTypes[] unitTypes, bool filterCombatEvents)
         {
-            if (this.filterService.ShouldAddUnitRemoved(logEntry))
+            switch (logEntry.LineType)
             {
-                writer.WriteLine(logEntry.Line);
-            }
-        }
-
-        private void HandleUnitChanged(LogEntry logEntry, StreamWriter writer)
-        {
-            if (this.filterService.ShouldAddUnitChanged(logEntry))
-            {
-                writer.WriteLine(logEntry.Line);
-            }
-        }
-
-        private void HandlePlayerInfo(LogEntry logEntry, StreamWriter writer)
-        {
-            if (this.filterService.ShouldAddPlayerInfo(logEntry))
-            {
-                writer.WriteLine(logEntry.Line);
-            }
-        }
-
-        private void HandleBeginCast(LogEntry logEntry, StreamWriter writer)
-        {
-            if (this.filterService.ShouldAddBeginCast(logEntry))
-            {
-                writer.WriteLine(logEntry.Line);
-            }
-        }
-
-        private void HandleEndCast(LogEntry logEntry, StreamWriter writer)
-        {
-            if (this.filterService.ShouldAddEndCast(logEntry))
-            {
-                writer.WriteLine(logEntry.Line);
-            }
-        }
-
-        private void HandleEffectChanged(LogEntry logEntry, StreamWriter writer)
-        {
-            if (this.filterService.ShouldAddEffectChanged(logEntry))
-            {
-                writer.WriteLine(logEntry.Line);
-            }
-        }
-
-        private void HandleCombatEvent(LogEntry logEntry, StreamWriter writer)
-        {
-            if (this.filterService.ShouldAddCombatEvent(logEntry))
-            {
-                writer.WriteLine(logEntry.Line);
-            }
-        }
-
-        private void HandleHealthRegen(LogEntry logEntry, StreamWriter writer)
-        {
-            if (this.filterService.ShouldAddHealthRegen(logEntry))
-            {
-                writer.WriteLine(logEntry.Line);
+                case LineTypes.UnitAdded:
+                    return this.filterService.IsUnitInFilterAndAdd(logEntry, unitTypes);
+                case LineTypes.UnitRemoved:
+                    return this.filterService.ShouldAddUnitRemoved(logEntry);
+                case LineTypes.UnitChanged:
+                    return this.filterService.ShouldAddUnitChanged(logEntry);
+                case LineTypes.PlayerInfo:
+                    return this.filterService.ShouldAddPlayerInfo(logEntry);
+                case LineTypes.HealthRegen:
+                    return this.filterService.ShouldAddHealthRegen(logEntry);
+                case LineTypes.BeginCast:
+                    return !filterCombatEvents || this.filterService.ShouldAddBeginCast(logEntry);
+                case LineTypes.EndCast:
+                    return !filterCombatEvents || this.filterService.ShouldAddEndCast(logEntry);
+                case LineTypes.EffectChanged:
+                    return !filterCombatEvents || this.filterService.ShouldAddEffectChanged(logEntry);
+                case LineTypes.CombatEvent:
+                    return !filterCombatEvents || this.filterService.ShouldAddCombatEvent(logEntry);
+                default:
+                    // Structural lines (BEGIN_LOG, ZONE_CHANGED, ABILITY_INFO, ...) and record
+                    // types this app does not know yet are always kept.
+                    return true;
             }
         }
     }

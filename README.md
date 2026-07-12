@@ -10,12 +10,24 @@ ESO combat logs can grow very large and contain entries for many different unit 
   - Players
   - Monster - Hostile
   - Monster - NPC Ally (Pet)
+  - Monster - NPC Enemy (Pet) — enemy players' pets, distinguished from NPCs by their owner
   - Monster - Friendly
   - Monster - Neutral
   - Object
   - Siege Weapon
+- Optionally also filter combat/effect events of hidden units (experimental) — see [docs/filtering.md](docs/filtering.md)
+- Preview & compare: summarize the unfiltered and filtered log side by side (file size, lines, units per category, record types) before uploading, including damage per source player scoped per fight — see [docs/preview.md](docs/preview.md)
 - Simple file picker for source and target files
 - Async processing with cancel support
+
+## Documentation
+
+- [How the filter works](docs/filtering.md)
+- [Preview & compare](docs/preview.md)
+- [Architecture](docs/architecture.md)
+- [Design decisions](docs/design-decisions.md)
+- [Development and releases](docs/development.md)
+- [Roadmap / ideas](docs/roadmap.md)
 
 ## Installation
 
