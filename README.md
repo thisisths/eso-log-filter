@@ -23,6 +23,7 @@ ESO combat logs can grow very large and contain entries for many different unit 
 
 - [How the filter works](docs/filtering.md)
 - [Architecture](docs/architecture.md)
+- [Design decisions](docs/design-decisions.md)
 - [Development and releases](docs/development.md)
 - [Roadmap / ideas](docs/roadmap.md)
 

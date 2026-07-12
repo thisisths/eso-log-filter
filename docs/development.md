@@ -26,14 +26,15 @@ dotnet run --project src/ui-avalonia/Ui.Avalonia.csproj
 The console harness drives the same `FileHandler` the GUI uses:
 
 ```bash
-dotnet run --project src/ui-test-console/Ui.TestConsole.csproj -- <input.log> <output.log> [--filter-events] [--units=Player,MonsterNpcAlly]
+dotnet run --project src/ui-test-console/Ui.TestConsole.csproj -- <input.log> <output.log> [--filter-events] [--units=Player,MonsterNpcAlly,MonsterNpcEnemy]
 ```
 
-- Default units are `Player,MonsterNpcAlly` (the GUI defaults).
+- Default units are `Player,MonsterNpcAlly,MonsterNpcEnemy` (the GUI defaults).
 - `--filter-events` enables the experimental event filtering
   (see [filtering.md](filtering.md)).
 - Unit names are the `UnitTypes` enum values: `Player`, `MonsterHostile`,
-  `MonsterNpcAlly`, `MonsterFriendly`, `MonsterNeutral`, `Object`, `SiegeWeapon`.
+  `MonsterNpcAlly`, `MonsterNpcEnemy`, `MonsterFriendly`, `MonsterNeutral`,
+  `Object`, `SiegeWeapon`.
 
 This is the easiest way to test changes against a real `Encounter.log`. Real logs
 are hundreds of MB up to a few GB; a full run takes seconds. A useful regression
