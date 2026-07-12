@@ -84,6 +84,11 @@ namespace EsoLogFilter.Tests
         // unitId 15956 (hostile)
         public const string HealthRegenHostile = "220,HEALTH_REGEN,478,15956,13911/37358,13786/21060,17791/22018,15/500,0/1000,0,0.7247,0.1980,1.3866";
 
+        // One fight of exactly 60 seconds.
+        public const string BeginCombat = "1000,BEGIN_COMBAT";
+
+        public const string EndCombat = "61000,END_COMBAT";
+
         public const string UnknownRecordType = "999,SOME_FUTURE_RECORD,1,2,3";
 
         public const string EndLog = "100000,END_LOG";

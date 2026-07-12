@@ -8,7 +8,9 @@
     {
         public static IServiceCollection AddCore(this IServiceCollection @this)
         {
-            return @this.AddScoped<IFilterByUnitTypeService, FilterByUnitTypeService>();
+            return @this
+                .AddScoped<IFilterByUnitTypeService, FilterByUnitTypeService>()
+                .AddScoped<ILogSummaryService, LogSummaryService>();
         }
     }
 }

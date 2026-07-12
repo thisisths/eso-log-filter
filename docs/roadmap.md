@@ -5,10 +5,13 @@ Rough backlog, in no particular order. No promises — see the disclaimer in the
 
 ## Local analysis (long-term goal)
 
-Analyze a raid log locally without uploading it anywhere:
+Analyze a raid log locally without uploading it anywhere. First step shipped
+2026-07: the [Preview tab](preview.md) compares an unfiltered/filtered pair
+(sizes, lines, units per category, record types, fight count). Still open:
 
 - Per-fight summaries (`BEGIN_COMBAT`/`END_COMBAT` blocks): duration, involved
-  players, damage done/taken.
+  players, damage done/taken — and a fight list that scopes the Preview tables
+  to a single fight.
 - Damage-to-players breakdown per source player — the main PvP question ("who
   actually hits enemy players?").
 - Top-target tables (which enemies received the most damage/healing).

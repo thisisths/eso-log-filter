@@ -48,6 +48,17 @@ passed through and kept. A game update that adds new record types must never
 crash the filter or silently drop data. (Before this policy, a single unknown
 line aborted the whole run.)
 
+## The preview compares two files, not the filter run
+
+The Preview tab (2026-07) summarizes two independently chosen files instead of
+tapping into the filter pass. Piggybacking on the filter would be one pass
+cheaper, but two-file compare is strictly more general: it works on any
+archived raw/filtered pair (e.g. validating the experimental event filtering
+against a log ESO Logs already accepted) and later on a single log for local
+analysis. It also keeps the summarizer read-only by construction, so the
+byte-identical filter guarantee cannot be affected by preview features. At
+~2 s per 400 MB file the extra pass is cheap.
+
 ## Determinism as the regression harness
 
 Same input + same settings ⇒ byte-identical output, always. This makes old

@@ -2,41 +2,54 @@ namespace EsoLogFilter.Ui.Avalonia
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
+    using System.IO;
     using System.Linq;
     using System.Threading;
     using global::Avalonia.Controls;
     using global::Avalonia.Interactivity;
+    using global::Avalonia.Media;
     using global::Avalonia.Platform.Storage;
+    using EsoLogFilter.Core.Model.Analysis;
     using EsoLogFilter.Core.Model.Objects;
     using EsoLogFilter.Core.Services;
     using EsoLogFilter.Ui.Avalonia.Helper;
+    using EsoLogFilter.Ui.Avalonia.Model;
 
     public partial class MainWindow : Window
     {
-        private readonly IFileHandler fileHandler;
-        private CancellationTokenSource cancellationTokenSource;
+        private static readonly (UnitTypes Type, string Name)[] UnitCategories =
+        {
+            (UnitTypes.Player, "Players"),
+            (UnitTypes.MonsterHostile, "Monster - Hostile"),
+            (UnitTypes.MonsterNpcAlly, "Monster - Npc Ally (Pet)"),
+            (UnitTypes.MonsterNpcEnemy, "Monster - Npc Enemy (Pet)"),
+            (UnitTypes.MonsterFriendly, "Monster - Friendly"),
+            (UnitTypes.MonsterNeutral, "Monster - Neutral"),
+            (UnitTypes.Object, "Object"),
+            (UnitTypes.SiegeWeapon, "Siege weapon"),
+            (UnitTypes.Unknown, "Unknown"),
+        };
 
-        public MainWindow(IFileHandler fileHandler)
+        private readonly IFileHandler fileHandler;
+        private readonly IFileSummarizer fileSummarizer;
+        private CancellationTokenSource cancellationTokenSource;
+        private CancellationTokenSource analyzeCancellationTokenSource;
+
+        public MainWindow(IFileHandler fileHandler, IFileSummarizer fileSummarizer)
         {
             InitializeComponent();
             this.fileHandler = fileHandler;
+            this.fileSummarizer = fileSummarizer;
         }
 
         private async void btnSourceFile_Click(object sender, RoutedEventArgs e)
         {
-            var files = await this.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-            {
-                Title = "Select Source File",
-                AllowMultiple = false,
-                FileTypeFilter = new[]
-                {
-                    new FilePickerFileType("LogFiles") { Patterns = new[] { "*.log" } }
-                }
-            });
+            var file = await this.OpenLogFileAsync("Select Source File");
 
-            if (files.Count > 0)
+            if (file != null)
             {
-                this.tbSourceFile.Text = files[0].Path.LocalPath;
+                this.tbSourceFile.Text = file;
             }
         }
 
@@ -96,6 +109,10 @@ namespace EsoLogFilter.Ui.Avalonia
             {
                 await this.fileHandler.FilterFileByUnitTypeAsync(sourceFile, unitTypes, outFile, filterCombatEvents, this.cancellationTokenSource.Token);
                 this.lblError.Text = "Finished!";
+
+                // Prefill the preview tab so the fresh pair can be analyzed directly.
+                this.tbUnfilteredFile.Text = sourceFile;
+                this.tbFilteredFile.Text = outFile;
             }
             catch (OperationCanceledException)
             {
@@ -118,12 +135,229 @@ namespace EsoLogFilter.Ui.Avalonia
             this.cancellationTokenSource?.Cancel();
         }
 
+        private async void btnUnfilteredFile_Click(object sender, RoutedEventArgs e)
+        {
+            var file = await this.OpenLogFileAsync("Select Unfiltered Log");
+
+            if (file != null)
+            {
+                this.tbUnfilteredFile.Text = file;
+            }
+        }
+
+        private async void btnFilteredFile_Click(object sender, RoutedEventArgs e)
+        {
+            var file = await this.OpenLogFileAsync("Select Filtered Log");
+
+            if (file != null)
+            {
+                this.tbFilteredFile.Text = file;
+            }
+        }
+
+        private async void btnAnalyze_Click(object sender, RoutedEventArgs e)
+        {
+            var error = new Error();
+            var unfilteredFile = this.tbUnfilteredFile.Text;
+            if (string.IsNullOrWhiteSpace(unfilteredFile))
+            {
+                error.Add("Select an unfiltered file!");
+            }
+
+            var filteredFile = this.tbFilteredFile.Text;
+            if (string.IsNullOrWhiteSpace(filteredFile))
+            {
+                error.Add("Select a filtered file!");
+            }
+
+            if (error.HasError)
+            {
+                this.lblPreviewError.Text = error.GetMessage();
+                return;
+            }
+
+            this.SetAnalyzingState(true);
+            this.lblPreviewError.Text = "";
+
+            this.analyzeCancellationTokenSource = new CancellationTokenSource();
+            try
+            {
+                // Sequential on purpose: the summary service is stateful per pass.
+                var unfiltered = await this.fileSummarizer.SummarizeFileAsync(unfilteredFile, this.analyzeCancellationTokenSource.Token);
+                var filtered = await this.fileSummarizer.SummarizeFileAsync(filteredFile, this.analyzeCancellationTokenSource.Token);
+
+                this.BuildPreview(unfiltered, filtered);
+            }
+            catch (OperationCanceledException)
+            {
+                this.lblPreviewError.Text = "Cancelled.";
+            }
+            catch (IOException ioException)
+            {
+                this.lblPreviewError.Text = ioException.Message;
+            }
+            catch
+            {
+                this.lblPreviewError.Text = "An unexpected error has occurred!";
+            }
+            finally
+            {
+                this.analyzeCancellationTokenSource.Dispose();
+                this.analyzeCancellationTokenSource = null;
+                this.SetAnalyzingState(false);
+            }
+        }
+
+        private void btnAnalyzeCancel_Click(object sender, RoutedEventArgs e)
+        {
+            this.analyzeCancellationTokenSource?.Cancel();
+        }
+
+        private async System.Threading.Tasks.Task<string> OpenLogFileAsync(string title)
+        {
+            var files = await this.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = title,
+                AllowMultiple = false,
+                FileTypeFilter = new[]
+                {
+                    new FilePickerFileType("LogFiles") { Patterns = new[] { "*.log" } }
+                }
+            });
+
+            return files.Count > 0 ? files[0].Path.LocalPath : null;
+        }
+
         private void SetRunningState(bool isRunning)
         {
             this.btnRun.IsVisible = !isRunning;
             this.pnlLoading.IsVisible = isRunning;
             this.btnSourceFile.IsEnabled = !isRunning;
             this.btnTargetFile.IsEnabled = !isRunning;
+
+            // While filtering writes the target file, analyzing it would read a half-written log.
+            this.btnAnalyze.IsEnabled = !isRunning;
+        }
+
+        private void SetAnalyzingState(bool isAnalyzing)
+        {
+            this.btnAnalyze.IsVisible = !isAnalyzing;
+            this.pnlAnalyzing.IsVisible = isAnalyzing;
+            this.btnUnfilteredFile.IsEnabled = !isAnalyzing;
+            this.btnFilteredFile.IsEnabled = !isAnalyzing;
+            this.btnRun.IsEnabled = !isAnalyzing;
+        }
+
+        private void BuildPreview(LogSummary unfiltered, LogSummary filtered)
+        {
+            var culture = CultureInfo.CurrentCulture;
+
+            var sizeDelta = filtered.FileSizeBytes - unfiltered.FileSizeBytes;
+            var sizePercent = unfiltered.FileSizeBytes != 0 ? sizeDelta * 100.0 / unfiltered.FileSizeBytes : 0.0;
+            this.tileSizeValue.Text = $"{FormatMegabytes(unfiltered.FileSizeBytes)} → {FormatMegabytes(filtered.FileSizeBytes)} MB";
+            this.tileSizeSub.Text = $"{FormatByteDelta(sizeDelta)} ({sizePercent.ToString("+0.00;-0.00;0.00", culture)} %)";
+
+            var lineDelta = filtered.TotalLines - unfiltered.TotalLines;
+            this.tileLinesValue.Text = $"{unfiltered.TotalLines.ToString("N0", culture)} → {filtered.TotalLines.ToString("N0", culture)}";
+            this.tileLinesSub.Text = $"{lineDelta.ToString("+#,##0;-#,##0;±0", culture)} lines";
+
+            var totalUnfilteredUnits = unfiltered.GetTotalUnitCount();
+            var totalFilteredUnits = filtered.GetTotalUnitCount();
+            var hiddenUnits = totalUnfilteredUnits - totalFilteredUnits;
+            var hiddenPlayers = unfiltered.GetUnitCount(UnitTypes.Player) - filtered.GetUnitCount(UnitTypes.Player);
+            this.tileUnitsValue.Text = $"{totalFilteredUnits.ToString("N0", culture)} kept";
+            this.tileUnitsSub.Text = $"{hiddenUnits.ToString("N0", culture)} of {totalUnfilteredUnits.ToString("N0", culture)} hidden · {hiddenPlayers.ToString("N0", culture)} players hidden";
+            this.tileUnitsSub.Foreground = hiddenPlayers > 0 ? Brushes.IndianRed : new SolidColorBrush(Color.Parse("#B0B0B0"));
+
+            this.tileFightsValue.Text = unfiltered.FightCount.ToString("N0", culture);
+            this.tileFightsSub.Text = unfiltered.FightCount > 0 ? FormatCombatTime(unfiltered.CombatTimeMs) : "no combat markers";
+
+            this.icUnitRows.ItemsSource = BuildUnitRows(unfiltered, filtered, culture);
+            this.icRecordRows.ItemsSource = BuildRecordRows(unfiltered, filtered, culture);
+        }
+
+        private static List<SummaryRow> BuildUnitRows(LogSummary unfiltered, LogSummary filtered, CultureInfo culture)
+        {
+            var rows = new List<SummaryRow>();
+
+            foreach (var (type, name) in UnitCategories)
+            {
+                var unfilteredCount = unfiltered.GetUnitCount(type);
+                var filteredCount = filtered.GetUnitCount(type);
+
+                // Units of unknown type only appear after a game update; hide the noise row otherwise.
+                if (type == UnitTypes.Unknown && unfilteredCount == 0 && filteredCount == 0)
+                {
+                    continue;
+                }
+
+                rows.Add(new SummaryRow(name, FormatCount(unfilteredCount, culture), FormatCount(filteredCount, culture), FormatCount(unfilteredCount - filteredCount, culture)));
+            }
+
+            var totalUnfiltered = unfiltered.GetTotalUnitCount();
+            var totalFiltered = filtered.GetTotalUnitCount();
+            rows.Add(new SummaryRow(
+                "Total",
+                totalUnfiltered.ToString("N0", culture),
+                totalFiltered.ToString("N0", culture),
+                (totalUnfiltered - totalFiltered).ToString("N0", culture),
+                isTotal: true));
+
+            return rows;
+        }
+
+        private static List<SummaryRow> BuildRecordRows(LogSummary unfiltered, LogSummary filtered, CultureInfo culture)
+        {
+            var rows = unfiltered.LinesByRecordType.Keys
+                .Union(filtered.LinesByRecordType.Keys)
+                .OrderByDescending(recordType => unfiltered.GetLineCount(recordType))
+                .ThenBy(recordType => recordType)
+                .Select(recordType =>
+                {
+                    var unfilteredCount = unfiltered.GetLineCount(recordType);
+                    var filteredCount = filtered.GetLineCount(recordType);
+                    return new SummaryRow(recordType, FormatCount(unfilteredCount, culture), FormatCount(filteredCount, culture), FormatCount(unfilteredCount - filteredCount, culture));
+                })
+                .ToList();
+
+            rows.Add(new SummaryRow(
+                "Total",
+                unfiltered.TotalLines.ToString("N0", culture),
+                filtered.TotalLines.ToString("N0", culture),
+                (unfiltered.TotalLines - filtered.TotalLines).ToString("N0", culture),
+                isTotal: true));
+
+            return rows;
+        }
+
+        private static string FormatCount(long count, CultureInfo culture)
+        {
+            return count == 0 ? "—" : count.ToString("N0", culture);
+        }
+
+        private static string FormatMegabytes(long bytes)
+        {
+            return (bytes / 1_000_000.0).ToString("N1", CultureInfo.CurrentCulture);
+        }
+
+        private static string FormatByteDelta(long bytes)
+        {
+            var sign = bytes > 0 ? "+" : bytes < 0 ? "-" : "±";
+            var absolute = Math.Abs(bytes);
+            var magnitude = absolute >= 1_000_000
+                ? (absolute / 1_000_000.0).ToString("N1", CultureInfo.CurrentCulture) + " MB"
+                : (absolute / 1_000.0).ToString("N1", CultureInfo.CurrentCulture) + " KB";
+
+            return sign + magnitude;
+        }
+
+        private static string FormatCombatTime(long combatTimeMs)
+        {
+            var time = TimeSpan.FromMilliseconds(combatTimeMs);
+
+            return time.TotalHours >= 1
+                ? $"{(int)time.TotalHours} h {time.Minutes} m in combat"
+                : $"{time.Minutes} m {time.Seconds} s in combat";
         }
 
         private UnitTypes[] GetUnitTypes()

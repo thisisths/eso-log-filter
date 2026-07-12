@@ -6,8 +6,8 @@ The solution (`EsoLogFilter.slnx`) contains five projects under `src/`:
 
 | Project | Type | Purpose |
 |---|---|---|
-| `core` | class library | Domain logic: log line model (`LogEntry`), enums, the filter decision service (`FilterByUnitTypeService`), and the service interfaces. Has no I/O dependencies. |
-| `infrastructure-file` | class library | File I/O: `FileHandler` streams the input log line by line, asks the core service what to keep, and writes the output file. |
+| `core` | class library | Domain logic: log line model (`LogEntry`), enums, the filter decision service (`FilterByUnitTypeService`), the log summary service (`LogSummaryService` + `LogSummary` aggregate model), and the service interfaces. Has no I/O dependencies. |
+| `infrastructure-file` | class library | File I/O: `FileHandler` streams the input log line by line, asks the core service what to keep, and writes the output file. `FileSummarizer` streams a log the same way and builds a `LogSummary` for the Preview tab. |
 | `ui-avalonia` | WinExe (`EsoLogFilter`) | The desktop GUI (Avalonia, Fluent theme). This is the application distributed via GitHub Releases. |
 | `ui-test-console` | console exe | Developer harness to run the filter from the command line (see [development.md](development.md)). |
 | `tests` | xunit | Unit tests for parsing and filter decisions plus end-to-end tests for `FileHandler` on small synthetic logs. |
@@ -18,8 +18,8 @@ The target framework (`net10.0`) is set once in `Directory.Build.props`.
 
 All wiring uses `Microsoft.Extensions.DependencyInjection`:
 
-- `core/ServiceCollectionExtensions.AddCore()` registers `IFilterByUnitTypeService`.
-- `infrastructure-file/ServiceCollectionExtensions.AddInfrastructureFile()` registers `IFileHandler`.
+- `core/ServiceCollectionExtensions.AddCore()` registers `IFilterByUnitTypeService` and `ILogSummaryService`.
+- `infrastructure-file/ServiceCollectionExtensions.AddInfrastructureFile()` registers `IFileHandler` and `IFileSummarizer`.
 - The Avalonia app builds the provider in `App.axaml.cs` and resolves `MainWindow`; the console harness does the same in its `Program.cs`.
 
 ## Data flow
@@ -39,8 +39,22 @@ Design points:
 - **Fail-open for unknown input.** Record types, unit types, or reactions the parser does not recognize are passed through unchanged instead of aborting the run — a game update that adds new record types cannot break existing filtering.
 - **Cancellation.** The async variant used by the GUI checks the `CancellationToken` per line, so Cancel reacts immediately even on huge files.
 
+The Preview tab uses a second, read-only flow (see [preview.md](preview.md)):
+
+```
+unfiltered .log ──> FileSummarizer.SummarizeCore ──> LogSummary ─┐
+filtered .log   ──> FileSummarizer.SummarizeCore ──> LogSummary ─┴─> compared in the Preview tab
+```
+
+- **Read-only by construction.** The summarizer never touches the filter path, so
+  the byte-identical filter guarantee cannot be affected by preview features.
+- **Aggregates only.** `LogSummary` holds counters (lines per record type, units
+  per category, fights), never lines — the same constant-memory discipline as the
+  filter.
+
 ## Where to change what
 
 - New record type that needs special handling: `core/Constants.cs`, `core/Model/Objects/LineTypes.cs`, `core/Model/LogEntry.cs` (`SetLineType`), and the `switch` in `infrastructure-file/Services/FileHandler.cs`.
 - Filter semantics: `core/Services/FilterByUnitTypeService.cs` (covered by `src/tests`).
-- GUI: `ui-avalonia/MainWindow.axaml(.cs)`.
+- Preview aggregates: `core/Model/Analysis/LogSummary.cs` and `core/Services/LogSummaryService.cs` (covered by `src/tests`).
+- GUI: `ui-avalonia/MainWindow.axaml(.cs)` — the Filter and Preview tabs.
