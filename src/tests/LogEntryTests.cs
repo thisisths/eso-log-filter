@@ -48,6 +48,8 @@ namespace EsoLogFilter.Tests
         [InlineData(TestLogLines.UnitAddedPet, UnitTypes.MonsterNpcAlly)]
         [InlineData(TestLogLines.UnitAddedHostile, UnitTypes.MonsterHostile)]
         [InlineData(TestLogLines.UnitAddedHostileNameWithComma, UnitTypes.MonsterHostile)]
+        [InlineData(TestLogLines.UnitAddedEnemyPet, UnitTypes.MonsterNpcEnemy)]
+        [InlineData(TestLogLines.UnitAddedEnemyPetNameWithComma, UnitTypes.MonsterNpcEnemy)]
         [InlineData(TestLogLines.UnitAddedObject, UnitTypes.Object)]
         [InlineData(TestLogLines.UnitAddedSiegeWeapon, UnitTypes.SiegeWeapon)]
         public void GetUnitType_ClassifiesUnit(string line, UnitTypes expected)

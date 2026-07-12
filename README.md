@@ -10,6 +10,7 @@ ESO combat logs can grow very large and contain entries for many different unit 
   - Players
   - Monster - Hostile
   - Monster - NPC Ally (Pet)
+  - Monster - NPC Enemy (Pet) — enemy players' pets, distinguished from NPCs by their owner
   - Monster - Friendly
   - Monster - Neutral
   - Object

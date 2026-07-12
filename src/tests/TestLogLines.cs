@@ -15,8 +15,14 @@ namespace EsoLogFilter.Tests
         // unitId 15908, MONSTER with reaction NPC_ALLY (a player pet)
         public const string UnitAddedPet = "191,UNIT_ADDED,15908,MONSTER,F,0,33152,F,0,0,\"Twilight Matriarch\",\"\",0,50,160,15906,NPC_ALLY,F";
 
-        // unitId 15956, MONSTER with reaction HOSTILE
+        // unitId 15956, MONSTER with reaction HOSTILE and no owner (an NPC, e.g. a guard)
         public const string UnitAddedHostile = "6554,UNIT_ADDED,15956,MONSTER,F,0,51854,F,0,0,\"Dominion Mender\",\"\",0,50,160,0,HOSTILE,F";
+
+        // unitId 16600, MONSTER with reaction HOSTILE owned by unit 777 (an enemy player's pet)
+        public const string UnitAddedEnemyPet = "7000,UNIT_ADDED,16600,MONSTER,F,0,33152,F,0,0,\"Twilight Matriarch\",\"\",0,50,160,777,HOSTILE,F";
+
+        // Enemy pet whose name contains a comma; owner and reaction must still be found relative to the line end.
+        public const string UnitAddedEnemyPetNameWithComma = "7001,UNIT_ADDED,16601,MONSTER,F,0,33152,F,0,0,\"Matriarch, the Dark\",\"\",0,50,160,777,HOSTILE,F";
 
         // A monster name containing a comma shifts all following fields by one;
         // the reaction must still be found relative to the line end.

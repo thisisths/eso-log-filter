@@ -9,6 +9,7 @@
         MonsterFriendly = 4,
         MonsterNeutral = 5,
         Object = 6,
-        SiegeWeapon = 7
+        SiegeWeapon = 7,
+        MonsterNpcEnemy = 8
     }
 }

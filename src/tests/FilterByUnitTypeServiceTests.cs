@@ -22,6 +22,21 @@ namespace EsoLogFilter.Tests
         }
 
         [Fact]
+        public void IsUnitInFilterAndAdd_TreatsEnemyPetsAsOwnCategory()
+        {
+            var defaults = new[] { UnitTypes.Player, UnitTypes.MonsterNpcAlly, UnitTypes.MonsterNpcEnemy };
+
+            // With the default selection the enemy pet is kept but the ownerless hostile NPC is not.
+            Assert.True(this.service.IsUnitInFilterAndAdd(new LogEntry(TestLogLines.UnitAddedEnemyPet), defaults));
+            Assert.False(this.service.IsUnitInFilterAndAdd(new LogEntry(TestLogLines.UnitAddedHostile), defaults));
+
+            // Without the category the enemy pet is dropped; selecting hostile does not include it.
+            this.service.Reset();
+            Assert.False(this.service.IsUnitInFilterAndAdd(new LogEntry(TestLogLines.UnitAddedEnemyPet), PlayersAndPets));
+            Assert.False(this.service.IsUnitInFilterAndAdd(new LogEntry(TestLogLines.UnitAddedEnemyPet), new[] { UnitTypes.MonsterHostile }));
+        }
+
+        [Fact]
         public void IsUnitInFilterAndAdd_KeepsUnknownUnitTypes()
         {
             var unknownUnit = new LogEntry("100,UNIT_ADDED,20001,SOME_FUTURE_UNIT,F,0,0,F,0,0,\"\",\"\",0,50,160,0,HOSTILE,F");

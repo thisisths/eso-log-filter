@@ -18,7 +18,7 @@ namespace EsoLogFilter.Ui.TestConsole
         {
             if (args.Length < 2)
             {
-                Console.WriteLine("Usage: Ui.TestConsole <inputFile> <outputFile> [--filter-events] [--units=Player,MonsterNpcAlly]");
+                Console.WriteLine("Usage: Ui.TestConsole <inputFile> <outputFile> [--filter-events] [--units=Player,MonsterNpcAlly,MonsterNpcEnemy]");
                 Console.WriteLine($"Known units: {string.Join(", ", Enum.GetNames<UnitTypes>().Where(n => n != nameof(UnitTypes.Unknown)))}");
                 return 1;
             }
@@ -26,7 +26,7 @@ namespace EsoLogFilter.Ui.TestConsole
             var inputFile = args[0];
             var outputFile = args[1];
             var filterCombatEvents = args.Contains("--filter-events");
-            var unitTypes = ParseUnitTypes(args) ?? new[] { UnitTypes.Player, UnitTypes.MonsterNpcAlly };
+            var unitTypes = ParseUnitTypes(args) ?? new[] { UnitTypes.Player, UnitTypes.MonsterNpcAlly, UnitTypes.MonsterNpcEnemy };
 
             //setup our DI
             using var serviceProvider = new ServiceCollection()

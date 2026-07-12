@@ -145,6 +145,11 @@ namespace EsoLogFilter.Ui.Avalonia
                 unitTypes.Add(UnitTypes.MonsterNpcAlly);
             }
 
+            if (this.cbMonsterNpcEnemy.IsChecked.GetValueOrDefault())
+            {
+                unitTypes.Add(UnitTypes.MonsterNpcEnemy);
+            }
+
             if (this.cbMonsterFriendly.IsChecked.GetValueOrDefault())
             {
                 unitTypes.Add(UnitTypes.MonsterFriendly);

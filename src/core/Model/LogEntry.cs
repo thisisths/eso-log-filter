@@ -62,13 +62,18 @@ namespace EsoLogFilter.Core.Model
                 case Constants.UnitTypes.Player:
                     return UnitTypes.Player;
                 case Constants.UnitTypes.Monster:
-                    // The name fields may contain commas, so the reaction is read relative to the line end.
+                    // The name fields may contain commas, so the reaction and ownerUnitId
+                    // are read relative to the line end.
                     var monsterTypeString = this.LineArray[this.arrayLength - 2];
 
                     switch (monsterTypeString)
                     {
                         case Constants.MonsterTypes.Hostile:
-                            return UnitTypes.MonsterHostile;
+                            // A hostile monster owned by a unit is an enemy player's pet;
+                            // guards and other NPCs have ownerUnitId 0.
+                            var ownerUnitId = this.LineArray[this.arrayLength - 3];
+
+                            return ownerUnitId == NoUnitId ? UnitTypes.MonsterHostile : UnitTypes.MonsterNpcEnemy;
                         case Constants.MonsterTypes.NpcAlly:
                             return UnitTypes.MonsterNpcAlly;
                         case Constants.MonsterTypes.Friendly:

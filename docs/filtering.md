@@ -11,7 +11,11 @@ Every unit announces itself with a `UNIT_ADDED` line. The filter classifies it
 into one of the selectable categories:
 
 - **Players** (`PLAYER`)
-- **Monster – Hostile / Npc Ally (Pet) / Friendly / Neutral** (`MONSTER`, split by its reaction)
+- **Monster – Npc Ally (Pet)** (`MONSTER` with reaction `NPC_ALLY` — your side's pets and summons)
+- **Monster – Npc Enemy (Pet)** (`MONSTER` with reaction `HOSTILE` that is *owned* by another
+  unit — enemy players' pets and summons; guards and other NPCs have no owner)
+- **Monster – Hostile** (`MONSTER` with reaction `HOSTILE` and no owner — NPCs such as guards)
+- **Monster – Friendly / Neutral** (`MONSTER`, split by its reaction)
 - **Object** (doors, walls, and other attackable objects)
 - **Siege weapon**
 
@@ -46,8 +50,9 @@ the app does not know.
 
 ## Typical PvP use case
 
-For a PvP raid log, keeping **Players** and **Monster – Npc Ally (Pet)** (the
-defaults) removes guards, siege weapons, and attackable objects from the report.
+For a PvP raid log, keeping **Players**, **Monster – Npc Ally (Pet)**, and
+**Monster – Npc Enemy (Pet)** (the defaults) removes guards, siege weapons, and
+attackable objects from the report while keeping both sides' players and pets.
 Enabling the experimental event filter additionally removes the damage/effect
 lines *onto* those units, so the log really only contains what happened to
 players and their pets. On a typical Cyrodiil raid log only a few percent of the
