@@ -8,7 +8,7 @@ The solution (`EsoLogFilter.slnx`) contains five projects under `src/`:
 |---|---|---|
 | `core` | class library | Domain logic: log line model (`LogEntry`), enums, the filter decision service (`FilterByUnitTypeService`), the log summary service (`LogSummaryService` + `LogSummary` aggregate model), and the service interfaces. Has no I/O dependencies. |
 | `infrastructure-file` | class library | File I/O: `FileHandler` streams the input log line by line, asks the core service what to keep, and writes the output file. `FileSummarizer` streams a log the same way and builds a `LogSummary` for the Preview tab. |
-| `ui-avalonia` | WinExe (`EsoLogFilter`) | The desktop GUI (Avalonia, Fluent theme). This is the application distributed via GitHub Releases. |
+| `ui-avalonia` | WinExe (`EsoLogFilter`) | The desktop GUI (Avalonia, Fluent theme; follows the OS light/dark theme via `ThemeDictionaries` in `App.axaml` — custom colors must be defined for both variants there, never hardcoded in `MainWindow.axaml`). This is the application distributed via GitHub Releases. |
 | `ui-test-console` | console exe | Developer harness to run the filter from the command line (see [development.md](development.md)). |
 | `tests` | xunit | Unit tests for parsing and filter decisions plus end-to-end tests for `FileHandler` on small synthetic logs. |
 

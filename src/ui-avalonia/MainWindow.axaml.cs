@@ -8,7 +8,6 @@ namespace EsoLogFilter.Ui.Avalonia
     using System.Threading;
     using global::Avalonia.Controls;
     using global::Avalonia.Interactivity;
-    using global::Avalonia.Media;
     using global::Avalonia.Platform.Storage;
     using EsoLogFilter.Core.Model.Analysis;
     using EsoLogFilter.Core.Model.Objects;
@@ -279,7 +278,7 @@ namespace EsoLogFilter.Ui.Avalonia
             var hiddenPlayers = unfiltered.GetUnitCount(UnitTypes.Player) - filtered.GetUnitCount(UnitTypes.Player);
             this.tileUnitsValue.Text = $"{totalFilteredUnits.ToString("N0", culture)} kept";
             this.tileUnitsSub.Text = $"{hiddenUnits.ToString("N0", culture)} of {totalUnfilteredUnits.ToString("N0", culture)} hidden · {hiddenPlayers.ToString("N0", culture)} players hidden";
-            this.tileUnitsSub.Foreground = hiddenPlayers > 0 ? Brushes.IndianRed : new SolidColorBrush(Color.Parse("#B0B0B0"));
+            this.tileUnitsSub.Classes.Set("warn", hiddenPlayers > 0);
 
             this.tileFightsValue.Text = unfiltered.FightCount.ToString("N0", culture);
             this.tileFightsSub.Text = unfiltered.FightCount > 0 ? FormatCombatTime(unfiltered.CombatTimeMs) : "no combat markers";

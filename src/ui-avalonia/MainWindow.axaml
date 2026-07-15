@@ -2,45 +2,53 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="EsoLogFilter.Ui.Avalonia.MainWindow"
         Title="Eso Log Filter" Height="600" Width="860" MinHeight="520" MinWidth="820"
-        Background="Black">
+        Background="{DynamicResource AppBackgroundBrush}">
+    <Window.Styles>
+        <Style Selector="TextBlock#tileUnitsSub">
+            <Setter Property="Foreground" Value="{DynamicResource AppSubtleBrush}"/>
+        </Style>
+        <Style Selector="TextBlock#tileUnitsSub.warn">
+            <Setter Property="Foreground" Value="IndianRed"/>
+        </Style>
+    </Window.Styles>
     <TabControl Padding="0">
-        <TabItem Header="Filter" FontSize="15" Foreground="White">
-            <Grid Background="Black">
+        <TabItem Header="Filter" FontSize="15">
+            <Grid Background="{DynamicResource AppBackgroundBrush}">
                 <Image Margin="0,10,10,0" HorizontalAlignment="Right" Width="237" Height="338" VerticalAlignment="Top" Source="/Slushyborn.png"/>
-                <TextBlock x:Name="lblSourceFile" Text="Source File:" HorizontalAlignment="Left" Margin="10,14,0,0" VerticalAlignment="Top" Width="142" Foreground="White"/>
+                <TextBlock x:Name="lblSourceFile" Text="Source File:" HorizontalAlignment="Left" Margin="10,14,0,0" VerticalAlignment="Top" Width="142"/>
                 <TextBox x:Name="tbSourceFile" Margin="157,10,350,0" Text="" VerticalAlignment="Top" IsEnabled="False" Height="28"/>
                 <Button x:Name="btnSourceFile" Content="Select" Margin="0,10,252,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="93" Click="btnSourceFile_Click"/>
-                <TextBlock x:Name="lblUnitTypes" Text="Units you want to see in the log:" HorizontalAlignment="Left" Margin="10,45,0,0" VerticalAlignment="Top" Foreground="White"/>
-                <CheckBox x:Name="cbPlayer" Content="Players" HorizontalAlignment="Left" Margin="29,72,0,0" VerticalAlignment="Top" Width="142" Foreground="White" IsChecked="True"/>
-                <CheckBox x:Name="cbMonsterHostile" Content="Monster - Hostile" HorizontalAlignment="Left" Margin="29,92,0,0" VerticalAlignment="Top" Foreground="White"/>
-                <CheckBox x:Name="cbMonsterNpcAlly" Content="Monster - Npc Ally (Pet)" HorizontalAlignment="Left" Margin="29,112,0,0" VerticalAlignment="Top" Foreground="White" IsChecked="True"/>
-                <CheckBox x:Name="cbMonsterNpcEnemy" Content="Monster - Npc Enemy (Pet)" HorizontalAlignment="Left" Margin="29,132,0,0" VerticalAlignment="Top" Foreground="White" IsChecked="True"/>
-                <CheckBox x:Name="cbMonsterFriendly" Content="Monster - Friendly" HorizontalAlignment="Left" Margin="29,152,0,0" VerticalAlignment="Top" Foreground="White"/>
-                <CheckBox x:Name="cbMonsterNeutral" Content="Monster - Neutral" HorizontalAlignment="Left" Margin="29,172,0,0" VerticalAlignment="Top" Foreground="White"/>
-                <CheckBox x:Name="cbObject" Content="Object" HorizontalAlignment="Left" Margin="29,192,0,0" VerticalAlignment="Top" Foreground="White"/>
-                <CheckBox x:Name="cbSiegeWeapon" Content="Siege weapon" HorizontalAlignment="Left" Margin="29,212,0,0" VerticalAlignment="Top" Foreground="White"/>
-                <CheckBox x:Name="cbFilterEvents" Content="Also filter combat/effect events of hidden units (experimental)" HorizontalAlignment="Left" Margin="10,242,0,0" VerticalAlignment="Top" Foreground="White"/>
-                <TextBlock x:Name="lblTargetFile" Text="Target File:" HorizontalAlignment="Left" Margin="10,276,0,0" VerticalAlignment="Top" Foreground="White" Width="142"/>
+                <TextBlock x:Name="lblUnitTypes" Text="Units you want to see in the log:" HorizontalAlignment="Left" Margin="10,45,0,0" VerticalAlignment="Top"/>
+                <CheckBox x:Name="cbPlayer" Content="Players" HorizontalAlignment="Left" Margin="29,72,0,0" VerticalAlignment="Top" Width="142" IsChecked="True"/>
+                <CheckBox x:Name="cbMonsterHostile" Content="Monster - Hostile" HorizontalAlignment="Left" Margin="29,92,0,0" VerticalAlignment="Top"/>
+                <CheckBox x:Name="cbMonsterNpcAlly" Content="Monster - Npc Ally (Pet)" HorizontalAlignment="Left" Margin="29,112,0,0" VerticalAlignment="Top" IsChecked="True"/>
+                <CheckBox x:Name="cbMonsterNpcEnemy" Content="Monster - Npc Enemy (Pet)" HorizontalAlignment="Left" Margin="29,132,0,0" VerticalAlignment="Top" IsChecked="True"/>
+                <CheckBox x:Name="cbMonsterFriendly" Content="Monster - Friendly" HorizontalAlignment="Left" Margin="29,152,0,0" VerticalAlignment="Top"/>
+                <CheckBox x:Name="cbMonsterNeutral" Content="Monster - Neutral" HorizontalAlignment="Left" Margin="29,172,0,0" VerticalAlignment="Top"/>
+                <CheckBox x:Name="cbObject" Content="Object" HorizontalAlignment="Left" Margin="29,192,0,0" VerticalAlignment="Top"/>
+                <CheckBox x:Name="cbSiegeWeapon" Content="Siege weapon" HorizontalAlignment="Left" Margin="29,212,0,0" VerticalAlignment="Top"/>
+                <CheckBox x:Name="cbFilterEvents" Content="Also filter combat/effect events of hidden units (experimental)" HorizontalAlignment="Left" Margin="10,242,0,0" VerticalAlignment="Top"/>
+                <TextBlock x:Name="lblTargetFile" Text="Target File:" HorizontalAlignment="Left" Margin="10,276,0,0" VerticalAlignment="Top" Width="142"/>
                 <TextBox x:Name="tbTargetFile" Margin="157,272,350,0" Text="" VerticalAlignment="Top" IsEnabled="False" Height="28"/>
                 <Button x:Name="btnTargetFile" Content="Select" Margin="0,272,252,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="93" Click="btnTargetFile_Click"/>
                 <Button x:Name="btnRun" Content="Run" Margin="10,311,252,0" VerticalAlignment="Top" Click="btnRun_Click"/>
                 <StackPanel x:Name="pnlLoading" Orientation="Horizontal" Margin="10,311,252,0" VerticalAlignment="Top" IsVisible="False">
                     <ProgressBar x:Name="pbFilter" Minimum="0" Maximum="100" Width="120" Height="20" Margin="0,0,10,0"/>
-                    <TextBlock Text="Working..." Foreground="White" VerticalAlignment="Center"/>
+                    <TextBlock Text="Working..." VerticalAlignment="Center"/>
                     <Button x:Name="btnCancel" Content="Cancel" Width="60" Margin="10,0,0,0" Click="btnCancel_Click"/>
                 </StackPanel>
-                <TextBlock x:Name="lblError" Text="" Margin="10,341,252,0" VerticalAlignment="Top" Height="56" Foreground="Black" Background="White" Padding="4"/>
+                <TextBlock x:Name="lblError" Text="" Margin="10,341,252,0" VerticalAlignment="Top" Height="56" Foreground="{DynamicResource ErrorForegroundBrush}" Background="{DynamicResource ErrorBackgroundBrush}" Padding="4"/>
             </Grid>
         </TabItem>
-        <TabItem Header="Preview" FontSize="15" Foreground="White">
-            <Grid Background="Black" RowDefinitions="Auto,Auto,Auto,Auto,*" Margin="10,8,10,10">
+        <TabItem Header="Preview" FontSize="15">
+            <Grid Background="{DynamicResource AppBackgroundBrush}" RowDefinitions="Auto,Auto,Auto,Auto,*" Margin="10,8,10,10">
                 <Grid Grid.Row="0" ColumnDefinitions="110,*,Auto" Margin="0,6,0,0">
-                    <TextBlock Text="Unfiltered file:" Foreground="White" VerticalAlignment="Center"/>
+                    <TextBlock Text="Unfiltered file:" VerticalAlignment="Center"/>
                     <TextBox x:Name="tbUnfilteredFile" Grid.Column="1" Text="" IsEnabled="False" Height="28" Margin="0,0,10,0"/>
                     <Button x:Name="btnUnfilteredFile" Grid.Column="2" Content="Select" Width="93" Click="btnUnfilteredFile_Click"/>
                 </Grid>
                 <Grid Grid.Row="1" ColumnDefinitions="110,*,Auto" Margin="0,8,0,0">
-                    <TextBlock Text="Filtered file:" Foreground="White" VerticalAlignment="Center"/>
+                    <TextBlock Text="Filtered file:" VerticalAlignment="Center"/>
                     <TextBox x:Name="tbFilteredFile" Grid.Column="1" Text="" IsEnabled="False" Height="28" Margin="0,0,10,0"/>
                     <Button x:Name="btnFilteredFile" Grid.Column="2" Content="Select" Width="93" Click="btnFilteredFile_Click"/>
                 </Grid>
@@ -48,59 +56,59 @@
                     <Button x:Name="btnAnalyze" Content="Analyze" Width="120" Click="btnAnalyze_Click"/>
                     <StackPanel x:Name="pnlAnalyzing" Orientation="Horizontal" IsVisible="False" Spacing="10">
                         <ProgressBar x:Name="pbAnalyze" Minimum="0" Maximum="100" Width="120" Height="20"/>
-                        <TextBlock Text="Analyzing..." Foreground="White" VerticalAlignment="Center"/>
+                        <TextBlock Text="Analyzing..." VerticalAlignment="Center"/>
                         <Button x:Name="btnAnalyzeCancel" Content="Cancel" Width="60" Click="btnAnalyzeCancel_Click"/>
                     </StackPanel>
-                    <TextBlock x:Name="lblPreviewError" Text="Both files are prefilled after a filter run — or pick any pair." Foreground="#8A8A8A" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="lblPreviewError" Text="Both files are prefilled after a filter run — or pick any pair." Foreground="{DynamicResource AppMutedBrush}" VerticalAlignment="Center"/>
                 </StackPanel>
                 <UniformGrid Grid.Row="3" Columns="4" Margin="-5,8,-5,0">
-                    <Border Background="#1B1B1B" BorderBrush="#333333" BorderThickness="1" CornerRadius="4" Margin="5" Padding="12,8">
+                    <Border Background="{DynamicResource TileBackgroundBrush}" BorderBrush="{DynamicResource TileBorderBrush}" BorderThickness="1" CornerRadius="4" Margin="5" Padding="12,8">
                         <StackPanel>
-                            <TextBlock Text="FILE SIZE" Foreground="#8A8A8A" FontSize="10"/>
-                            <TextBlock x:Name="tileSizeValue" Text="—" Foreground="White" FontSize="17" FontWeight="SemiBold" Margin="0,2,0,0"/>
-                            <TextBlock x:Name="tileSizeSub" Text="" Foreground="#B0B0B0" FontSize="11"/>
+                            <TextBlock Text="FILE SIZE" Foreground="{DynamicResource AppMutedBrush}" FontSize="10"/>
+                            <TextBlock x:Name="tileSizeValue" Text="—" FontSize="17" FontWeight="SemiBold" Margin="0,2,0,0"/>
+                            <TextBlock x:Name="tileSizeSub" Text="" Foreground="{DynamicResource AppSubtleBrush}" FontSize="11"/>
                         </StackPanel>
                     </Border>
-                    <Border Background="#1B1B1B" BorderBrush="#333333" BorderThickness="1" CornerRadius="4" Margin="5" Padding="12,8">
+                    <Border Background="{DynamicResource TileBackgroundBrush}" BorderBrush="{DynamicResource TileBorderBrush}" BorderThickness="1" CornerRadius="4" Margin="5" Padding="12,8">
                         <StackPanel>
-                            <TextBlock Text="LINES" Foreground="#8A8A8A" FontSize="10"/>
-                            <TextBlock x:Name="tileLinesValue" Text="—" Foreground="White" FontSize="17" FontWeight="SemiBold" Margin="0,2,0,0"/>
-                            <TextBlock x:Name="tileLinesSub" Text="" Foreground="#B0B0B0" FontSize="11"/>
+                            <TextBlock Text="LINES" Foreground="{DynamicResource AppMutedBrush}" FontSize="10"/>
+                            <TextBlock x:Name="tileLinesValue" Text="—" FontSize="17" FontWeight="SemiBold" Margin="0,2,0,0"/>
+                            <TextBlock x:Name="tileLinesSub" Text="" Foreground="{DynamicResource AppSubtleBrush}" FontSize="11"/>
                         </StackPanel>
                     </Border>
-                    <Border Background="#1B1B1B" BorderBrush="#333333" BorderThickness="1" CornerRadius="4" Margin="5" Padding="12,8">
+                    <Border Background="{DynamicResource TileBackgroundBrush}" BorderBrush="{DynamicResource TileBorderBrush}" BorderThickness="1" CornerRadius="4" Margin="5" Padding="12,8">
                         <StackPanel>
-                            <TextBlock Text="UNITS REGISTERED" Foreground="#8A8A8A" FontSize="10"/>
-                            <TextBlock x:Name="tileUnitsValue" Text="—" Foreground="White" FontSize="17" FontWeight="SemiBold" Margin="0,2,0,0"/>
-                            <TextBlock x:Name="tileUnitsSub" Text="" Foreground="#B0B0B0" FontSize="11"/>
+                            <TextBlock Text="UNITS REGISTERED" Foreground="{DynamicResource AppMutedBrush}" FontSize="10"/>
+                            <TextBlock x:Name="tileUnitsValue" Text="—" FontSize="17" FontWeight="SemiBold" Margin="0,2,0,0"/>
+                            <TextBlock x:Name="tileUnitsSub" Text="" FontSize="11"/>
                         </StackPanel>
                     </Border>
-                    <Border Background="#1B1B1B" BorderBrush="#333333" BorderThickness="1" CornerRadius="4" Margin="5" Padding="12,8">
+                    <Border Background="{DynamicResource TileBackgroundBrush}" BorderBrush="{DynamicResource TileBorderBrush}" BorderThickness="1" CornerRadius="4" Margin="5" Padding="12,8">
                         <StackPanel>
-                            <TextBlock Text="FIGHTS" Foreground="#8A8A8A" FontSize="10"/>
-                            <TextBlock x:Name="tileFightsValue" Text="—" Foreground="White" FontSize="17" FontWeight="SemiBold" Margin="0,2,0,0"/>
-                            <TextBlock x:Name="tileFightsSub" Text="" Foreground="#B0B0B0" FontSize="11"/>
+                            <TextBlock Text="FIGHTS" Foreground="{DynamicResource AppMutedBrush}" FontSize="10"/>
+                            <TextBlock x:Name="tileFightsValue" Text="—" FontSize="17" FontWeight="SemiBold" Margin="0,2,0,0"/>
+                            <TextBlock x:Name="tileFightsSub" Text="" Foreground="{DynamicResource AppSubtleBrush}" FontSize="11"/>
                         </StackPanel>
                     </Border>
                 </UniformGrid>
                 <TabControl Grid.Row="4" Margin="0,10,0,0" Padding="0">
-                    <TabItem Header="Units" FontSize="13" Foreground="White">
+                    <TabItem Header="Units" FontSize="13">
                         <ScrollViewer Margin="0,8,0,0">
                             <StackPanel>
                                 <Grid ColumnDefinitions="*,110,110,110" Margin="4,0,4,4">
-                                    <TextBlock Text="Unit category" Foreground="#8A8A8A" FontSize="11"/>
-                                    <TextBlock Grid.Column="1" Text="Registered" Foreground="#8A8A8A" FontSize="11" HorizontalAlignment="Right"/>
-                                    <TextBlock Grid.Column="2" Text="Kept" Foreground="#8A8A8A" FontSize="11" HorizontalAlignment="Right"/>
-                                    <TextBlock Grid.Column="3" Text="Hidden" Foreground="#8A8A8A" FontSize="11" HorizontalAlignment="Right"/>
+                                    <TextBlock Text="Unit category" Foreground="{DynamicResource AppMutedBrush}" FontSize="11"/>
+                                    <TextBlock Grid.Column="1" Text="Registered" Foreground="{DynamicResource AppMutedBrush}" FontSize="11" HorizontalAlignment="Right"/>
+                                    <TextBlock Grid.Column="2" Text="Kept" Foreground="{DynamicResource AppMutedBrush}" FontSize="11" HorizontalAlignment="Right"/>
+                                    <TextBlock Grid.Column="3" Text="Hidden" Foreground="{DynamicResource AppMutedBrush}" FontSize="11" HorizontalAlignment="Right"/>
                                 </Grid>
                                 <ItemsControl x:Name="icUnitRows">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <Grid ColumnDefinitions="*,110,110,110" Margin="4,2">
-                                                <TextBlock Text="{Binding Name}" Foreground="White" FontWeight="{Binding Weight}"/>
-                                                <TextBlock Grid.Column="1" Text="{Binding Unfiltered}" Foreground="White" FontWeight="{Binding Weight}" HorizontalAlignment="Right"/>
-                                                <TextBlock Grid.Column="2" Text="{Binding Filtered}" Foreground="White" FontWeight="{Binding Weight}" HorizontalAlignment="Right"/>
-                                                <TextBlock Grid.Column="3" Text="{Binding Delta}" Foreground="#B0B0B0" FontWeight="{Binding Weight}" HorizontalAlignment="Right"/>
+                                                <TextBlock Text="{Binding Name}" FontWeight="{Binding Weight}"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Unfiltered}" FontWeight="{Binding Weight}" HorizontalAlignment="Right"/>
+                                                <TextBlock Grid.Column="2" Text="{Binding Filtered}" FontWeight="{Binding Weight}" HorizontalAlignment="Right"/>
+                                                <TextBlock Grid.Column="3" Text="{Binding Delta}" Foreground="{DynamicResource AppSubtleBrush}" FontWeight="{Binding Weight}" HorizontalAlignment="Right"/>
                                             </Grid>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
@@ -108,64 +116,64 @@
                             </StackPanel>
                         </ScrollViewer>
                     </TabItem>
-                    <TabItem Header="Damage" FontSize="13" Foreground="White">
+                    <TabItem Header="Damage" FontSize="13">
                         <Grid ColumnDefinitions="235,*" Margin="0,8,0,0">
                             <Grid RowDefinitions="Auto,*">
-                                <TextBlock Text="Fight · start · length · players" Foreground="#8A8A8A" FontSize="11" Margin="4,0,4,4"/>
+                                <TextBlock Text="Fight · start · length · players" Foreground="{DynamicResource AppMutedBrush}" FontSize="11" Margin="4,0,4,4"/>
                                 <ListBox x:Name="lbFights" Grid.Row="1" Background="Transparent" SelectionChanged="lbFights_SelectionChanged">
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding Label}" Foreground="White" FontSize="12"/>
+                                            <TextBlock Text="{Binding Label}" FontSize="12"/>
                                         </DataTemplate>
                                     </ListBox.ItemTemplate>
                                 </ListBox>
                             </Grid>
                             <Grid Grid.Column="1" RowDefinitions="Auto,*,Auto" Margin="10,0,0,0">
                                 <Grid ColumnDefinitions="*,95,110,95,130" Margin="4,0,4,4">
-                                    <TextBlock Text="Source player" Foreground="#8A8A8A" FontSize="11"/>
-                                    <TextBlock Grid.Column="1" Text="Total" Foreground="#8A8A8A" FontSize="11" HorizontalAlignment="Right"/>
-                                    <TextBlock Grid.Column="2" Text="On ESO Logs" Foreground="#8A8A8A" FontSize="11" HorizontalAlignment="Right"/>
-                                    <TextBlock Grid.Column="3" Text="Removed" Foreground="#8A8A8A" FontSize="11" HorizontalAlignment="Right"/>
+                                    <TextBlock Text="Source player" Foreground="{DynamicResource AppMutedBrush}" FontSize="11"/>
+                                    <TextBlock Grid.Column="1" Text="Total" Foreground="{DynamicResource AppMutedBrush}" FontSize="11" HorizontalAlignment="Right"/>
+                                    <TextBlock Grid.Column="2" Text="On ESO Logs" Foreground="{DynamicResource AppMutedBrush}" FontSize="11" HorizontalAlignment="Right"/>
+                                    <TextBlock Grid.Column="3" Text="Removed" Foreground="{DynamicResource AppMutedBrush}" FontSize="11" HorizontalAlignment="Right"/>
                                 </Grid>
                                 <ScrollViewer Grid.Row="1">
                                     <ItemsControl x:Name="icDamageRows">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <Grid ColumnDefinitions="*,95,110,95,130" Margin="4,2">
-                                                    <TextBlock Text="{Binding Name}" Foreground="White" FontWeight="{Binding Weight}"/>
-                                                    <TextBlock Grid.Column="1" Text="{Binding Total}" Foreground="White" FontWeight="{Binding Weight}" HorizontalAlignment="Right"/>
-                                                    <TextBlock Grid.Column="2" Text="{Binding Counted}" Foreground="White" FontWeight="{Binding Weight}" HorizontalAlignment="Right"/>
-                                                    <TextBlock Grid.Column="3" Text="{Binding Removed}" Foreground="#B0B0B0" FontWeight="{Binding Weight}" HorizontalAlignment="Right"/>
+                                                    <TextBlock Text="{Binding Name}" FontWeight="{Binding Weight}"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding Total}" FontWeight="{Binding Weight}" HorizontalAlignment="Right"/>
+                                                    <TextBlock Grid.Column="2" Text="{Binding Counted}" FontWeight="{Binding Weight}" HorizontalAlignment="Right"/>
+                                                    <TextBlock Grid.Column="3" Text="{Binding Removed}" Foreground="{DynamicResource AppSubtleBrush}" FontWeight="{Binding Weight}" HorizontalAlignment="Right"/>
                                                     <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="2" Margin="10,0,0,0" VerticalAlignment="Center">
                                                         <Border Background="#3987E5" Height="8" CornerRadius="2" Width="{Binding FillWidth}"/>
-                                                        <Border Background="#4A4A4A" Height="8" CornerRadius="2" Width="{Binding RestWidth}"/>
+                                                        <Border Background="{DynamicResource BarRestBrush}" Height="8" CornerRadius="2" Width="{Binding RestWidth}"/>
                                                     </StackPanel>
                                                 </Grid>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
                                 </ScrollViewer>
-                                <TextBlock Grid.Row="2" Text="Damage hit values incl. dot ticks, blocked and shielded; fall damage excluded. Pets count toward their owner. “On ESO Logs” counts only hits on units still registered in the filtered log — in default mode the event lines themselves are identical in both files." Foreground="#8A8A8A" FontSize="11" TextWrapping="Wrap" Margin="4,8,4,0"/>
+                                <TextBlock Grid.Row="2" Text="Damage hit values incl. dot ticks, blocked and shielded; fall damage excluded. Pets count toward their owner. “On ESO Logs” counts only hits on units still registered in the filtered log — in default mode the event lines themselves are identical in both files." Foreground="{DynamicResource AppMutedBrush}" FontSize="11" TextWrapping="Wrap" Margin="4,8,4,0"/>
                             </Grid>
                         </Grid>
                     </TabItem>
-                    <TabItem Header="Record types" FontSize="13" Foreground="White">
+                    <TabItem Header="Record types" FontSize="13">
                         <ScrollViewer Margin="0,8,0,0">
                             <StackPanel>
                                 <Grid ColumnDefinitions="*,110,110,110" Margin="4,0,4,4">
-                                    <TextBlock Text="Record type" Foreground="#8A8A8A" FontSize="11"/>
-                                    <TextBlock Grid.Column="1" Text="Lines" Foreground="#8A8A8A" FontSize="11" HorizontalAlignment="Right"/>
-                                    <TextBlock Grid.Column="2" Text="Kept" Foreground="#8A8A8A" FontSize="11" HorizontalAlignment="Right"/>
-                                    <TextBlock Grid.Column="3" Text="Dropped" Foreground="#8A8A8A" FontSize="11" HorizontalAlignment="Right"/>
+                                    <TextBlock Text="Record type" Foreground="{DynamicResource AppMutedBrush}" FontSize="11"/>
+                                    <TextBlock Grid.Column="1" Text="Lines" Foreground="{DynamicResource AppMutedBrush}" FontSize="11" HorizontalAlignment="Right"/>
+                                    <TextBlock Grid.Column="2" Text="Kept" Foreground="{DynamicResource AppMutedBrush}" FontSize="11" HorizontalAlignment="Right"/>
+                                    <TextBlock Grid.Column="3" Text="Dropped" Foreground="{DynamicResource AppMutedBrush}" FontSize="11" HorizontalAlignment="Right"/>
                                 </Grid>
                                 <ItemsControl x:Name="icRecordRows">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <Grid ColumnDefinitions="*,110,110,110" Margin="4,2">
-                                                <TextBlock Text="{Binding Name}" Foreground="White" FontWeight="{Binding Weight}"/>
-                                                <TextBlock Grid.Column="1" Text="{Binding Unfiltered}" Foreground="White" FontWeight="{Binding Weight}" HorizontalAlignment="Right"/>
-                                                <TextBlock Grid.Column="2" Text="{Binding Filtered}" Foreground="White" FontWeight="{Binding Weight}" HorizontalAlignment="Right"/>
-                                                <TextBlock Grid.Column="3" Text="{Binding Delta}" Foreground="#B0B0B0" FontWeight="{Binding Weight}" HorizontalAlignment="Right"/>
+                                                <TextBlock Text="{Binding Name}" FontWeight="{Binding Weight}"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Unfiltered}" FontWeight="{Binding Weight}" HorizontalAlignment="Right"/>
+                                                <TextBlock Grid.Column="2" Text="{Binding Filtered}" FontWeight="{Binding Weight}" HorizontalAlignment="Right"/>
+                                                <TextBlock Grid.Column="3" Text="{Binding Delta}" Foreground="{DynamicResource AppSubtleBrush}" FontWeight="{Binding Weight}" HorizontalAlignment="Right"/>
                                             </Grid>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
