@@ -8,7 +8,7 @@ The solution (`EsoLogFilter.slnx`) contains five projects under `src/`:
 |---|---|---|
 | `core` | class library | Domain logic: log line model (`LogEntry`), enums, the filter decision service (`FilterByUnitTypeService`), the log summary service (`LogSummaryService` + `LogSummary` aggregate model), and the service interfaces. Has no I/O dependencies. |
 | `infrastructure-file` | class library | File I/O: `FileHandler` streams the input log line by line, asks the core service what to keep, and writes the output file. `FileSummarizer` streams a log the same way and builds a `LogSummary` for the Preview tab. |
-| `ui-avalonia` | WinExe (`EsoLogFilter`) | The desktop GUI (Avalonia, Fluent theme). This is the application distributed via GitHub Releases. |
+| `ui-avalonia` | WinExe (`EsoLogFilter`) | The desktop GUI (Avalonia, Fluent theme; follows the OS light/dark theme via `ThemeDictionaries` in `App.axaml` — custom colors must be defined for both variants there, never hardcoded in `MainWindow.axaml`). This is the application distributed via GitHub Releases. |
 | `ui-test-console` | console exe | Developer harness to run the filter from the command line (see [development.md](development.md)). |
 | `tests` | xunit | Unit tests for parsing and filter decisions plus end-to-end tests for `FileHandler` on small synthetic logs. |
 
@@ -52,6 +52,13 @@ filtered .log   ──> FileSummarizer.SummarizeCore ──> LogSummary ─┴�
 - **Aggregates only.** `LogSummary` holds counters (lines per record type, units
   per category, fights), never lines — the same constant-memory discipline as the
   filter.
+
+## Error handling
+
+- `core/Exceptions/BusinessException` marks expected error conditions whose `Message` is written for the end user; the GUI and the console harness display it as-is, without technical details.
+- `FileInUseException` (derived from it) is thrown by `FileHandler` when opening the source or target file fails with a sharing violation — typically the game still writing the encounter log. The message says which file is affected and, for the source, how to stop encounter logging.
+- The source file is opened read-only but deliberately without shared write (`FileShare.Read`): filtering a log the game is still appending to would silently produce a truncated output, so failing fast with the message above is intended.
+- Everything else is unexpected: the GUI shows a generic message and appends the full exception details to `error.log` next to the executable (temp folder as fallback) via `ui-avalonia/Helper/ErrorReporter`.
 
 ## Where to change what
 

@@ -65,6 +65,12 @@ No .NET runtime installation required — the application is fully self-containe
 
 > macOS Gatekeeper may block the application since it is not signed or notarized. To allow it, go to **System Settings > Privacy & Security** and click **Open Anyway** after the first blocked launch attempt.
 
+## Troubleshooting
+
+**"The source file is still in use by another program."** — The game is still writing the encounter log. Type `/encounterlog` in the in-game chat to stop logging (or close the game), then run the filter again.
+
+**"An unexpected error has occurred."** — The technical details are appended to `error.log` in the folder the application runs from (or in the system temp folder if that location is not writable). Please attach the relevant part of that file when [opening an issue](../../issues).
+
 ## Disclaimer
 
 This is an open source project provided **as-is**, without warranty of any kind. There is no official support. Use at your own risk.

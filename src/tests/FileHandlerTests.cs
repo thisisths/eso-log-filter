@@ -4,6 +4,7 @@ namespace EsoLogFilter.Tests
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
+    using EsoLogFilter.Core.Exceptions;
     using EsoLogFilter.Core.Model.Objects;
     using EsoLogFilter.Core.Services;
     using EsoLogFilter.Infrastructure.File.Services;
@@ -157,6 +158,70 @@ namespace EsoLogFilter.Tests
             Assert.NotEmpty(progress.Reports);
             Assert.Equal(1.0, progress.Reports[^1]);
             Assert.All(progress.Reports, fraction => Assert.InRange(fraction, 0.0, 1.0));
+        }
+
+        [Fact]
+        public void ReadOnlySourceFile_CanBeFiltered()
+        {
+            var input = this.WriteInputFile(TestLogLines.BeginLog);
+            var output = this.GetOutputPath();
+            File.SetAttributes(input, FileAttributes.ReadOnly);
+
+            try
+            {
+                this.fileHandler.FilterFileByUnitType(input, PlayersAndPets, output, filterCombatEvents: false);
+            }
+            finally
+            {
+                // A read-only file would break the recursive cleanup in Dispose.
+                File.SetAttributes(input, FileAttributes.Normal);
+            }
+
+            Assert.Equal(new[] { TestLogLines.BeginLog }, File.ReadAllLines(output));
+        }
+
+        [Fact]
+        public void LockedSourceFile_ThrowsFileInUseExceptionForTheSource()
+        {
+            if (!OperatingSystem.IsWindows())
+            {
+                return; // POSIX file systems do not enforce mandatory locks.
+            }
+
+            var input = this.WriteInputFile(TestLogLines.BeginLog);
+            var output = this.GetOutputPath();
+
+            // Simulates the game still writing the encounter log.
+            using (new FileStream(input, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+            {
+                var exception = Assert.Throws<FileInUseException>(
+                    () => this.fileHandler.FilterFileByUnitType(input, PlayersAndPets, output, filterCombatEvents: false));
+
+                Assert.Equal(input, exception.FilePath);
+                Assert.Contains("source file", exception.Message);
+                Assert.Contains("/encounterlog", exception.Message);
+            }
+        }
+
+        [Fact]
+        public void LockedTargetFile_ThrowsFileInUseExceptionForTheTarget()
+        {
+            if (!OperatingSystem.IsWindows())
+            {
+                return; // POSIX file systems do not enforce mandatory locks.
+            }
+
+            var input = this.WriteInputFile(TestLogLines.BeginLog);
+            var output = this.GetOutputPath();
+
+            using (new FileStream(output, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
+            {
+                var exception = Assert.Throws<FileInUseException>(
+                    () => this.fileHandler.FilterFileByUnitType(input, PlayersAndPets, output, filterCombatEvents: false));
+
+                Assert.Equal(output, exception.FilePath);
+                Assert.Contains("target file", exception.Message);
+            }
         }
 
         private string WriteInputFile(params string[] lines)

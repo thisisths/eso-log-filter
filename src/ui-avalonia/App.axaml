@@ -1,6 +1,32 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="EsoLogFilter.Ui.Avalonia.App">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="AppBackgroundBrush">Black</SolidColorBrush>
+                    <SolidColorBrush x:Key="AppMutedBrush">#8A8A8A</SolidColorBrush>
+                    <SolidColorBrush x:Key="AppSubtleBrush">#B0B0B0</SolidColorBrush>
+                    <SolidColorBrush x:Key="TileBackgroundBrush">#1B1B1B</SolidColorBrush>
+                    <SolidColorBrush x:Key="TileBorderBrush">#333333</SolidColorBrush>
+                    <SolidColorBrush x:Key="BarRestBrush">#4A4A4A</SolidColorBrush>
+                    <SolidColorBrush x:Key="ErrorBackgroundBrush">White</SolidColorBrush>
+                    <SolidColorBrush x:Key="ErrorForegroundBrush">Black</SolidColorBrush>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="AppBackgroundBrush">White</SolidColorBrush>
+                    <SolidColorBrush x:Key="AppMutedBrush">#6E6E6E</SolidColorBrush>
+                    <SolidColorBrush x:Key="AppSubtleBrush">#5A5A5A</SolidColorBrush>
+                    <SolidColorBrush x:Key="TileBackgroundBrush">#F2F2F2</SolidColorBrush>
+                    <SolidColorBrush x:Key="TileBorderBrush">#D6D6D6</SolidColorBrush>
+                    <SolidColorBrush x:Key="BarRestBrush">#C9C9C9</SolidColorBrush>
+                    <SolidColorBrush x:Key="ErrorBackgroundBrush">#F2F2F2</SolidColorBrush>
+                    <SolidColorBrush x:Key="ErrorForegroundBrush">Black</SolidColorBrush>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
     <Application.Styles>
         <FluentTheme />
     </Application.Styles>
