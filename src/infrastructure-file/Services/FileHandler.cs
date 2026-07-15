@@ -4,6 +4,7 @@ namespace EsoLogFilter.Infrastructure.File.Services
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
+    using EsoLogFilter.Core.Exceptions;
     using EsoLogFilter.Core.Model;
     using EsoLogFilter.Core.Model.Objects;
     using EsoLogFilter.Core.Services;
@@ -42,8 +43,8 @@ namespace EsoLogFilter.Infrastructure.File.Services
         {
             this.filterService.Reset();
 
-            FileStream inputFileStream = new FileStream(inputFile, FileMode.Open);
-            FileStream outputFileStream = new FileStream(outputFile, FileMode.Create);
+            using (FileStream inputFileStream = OpenSourceStream(inputFile))
+            using (FileStream outputFileStream = CreateTargetStream(outputFile))
             using (StreamReader reader = new StreamReader(inputFileStream))
             using (StreamWriter writer = new StreamWriter(outputFileStream))
             {
@@ -72,6 +73,38 @@ namespace EsoLogFilter.Infrastructure.File.Services
             }
 
             progress?.Report(1);
+        }
+
+        private static FileStream OpenSourceStream(string inputFile)
+        {
+            try
+            {
+                // Read-only access, but deliberately no shared write: filtering a log the
+                // game is still appending to would silently produce a truncated output.
+                return new FileStream(inputFile, FileMode.Open, FileAccess.Read, FileShare.Read);
+            }
+            catch (IOException ex) when (FileInUseException.IsSharingViolation(ex))
+            {
+                throw new FileInUseException(
+                    inputFile,
+                    "The source file is still in use by another program.\nIf you are still in game, type /encounterlog in the chat to stop logging, then try again.",
+                    ex);
+            }
+        }
+
+        private static FileStream CreateTargetStream(string outputFile)
+        {
+            try
+            {
+                return new FileStream(outputFile, FileMode.Create);
+            }
+            catch (IOException ex) when (FileInUseException.IsSharingViolation(ex))
+            {
+                throw new FileInUseException(
+                    outputFile,
+                    "The target file is in use by another program.\nClose the program that has it open and try again.",
+                    ex);
+            }
         }
 
         private bool ShouldWrite(LogEntry logEntry, UnitTypes[] unitTypes, bool filterCombatEvents)

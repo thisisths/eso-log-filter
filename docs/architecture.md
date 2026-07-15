@@ -53,6 +53,13 @@ filtered .log   ──> FileSummarizer.SummarizeCore ──> LogSummary ─┴�
   per category, fights), never lines — the same constant-memory discipline as the
   filter.
 
+## Error handling
+
+- `core/Exceptions/BusinessException` marks expected error conditions whose `Message` is written for the end user; the GUI and the console harness display it as-is, without technical details.
+- `FileInUseException` (derived from it) is thrown by `FileHandler` when opening the source or target file fails with a sharing violation — typically the game still writing the encounter log. The message says which file is affected and, for the source, how to stop encounter logging.
+- The source file is opened read-only but deliberately without shared write (`FileShare.Read`): filtering a log the game is still appending to would silently produce a truncated output, so failing fast with the message above is intended.
+- Everything else is unexpected: the GUI shows a generic message and appends the full exception details to `error.log` next to the executable (temp folder as fallback) via `ui-avalonia/Helper/ErrorReporter`.
+
 ## Where to change what
 
 - New record type that needs special handling: `core/Constants.cs`, `core/Model/Objects/LineTypes.cs`, `core/Model/LogEntry.cs` (`SetLineType`), and the `switch` in `infrastructure-file/Services/FileHandler.cs`.

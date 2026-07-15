@@ -5,6 +5,7 @@ namespace EsoLogFilter.Ui.TestConsole
     using System.Threading;
     using System.Threading.Tasks;
     using EsoLogFilter.Core;
+    using EsoLogFilter.Core.Exceptions;
     using EsoLogFilter.Core.Model.Objects;
     using EsoLogFilter.Core.Services;
     using EsoLogFilter.Infrastructure.File;
@@ -40,7 +41,15 @@ namespace EsoLogFilter.Ui.TestConsole
             logger.LogInformation($"Units: [{string.Join(", ", unitTypes)}], filterCombatEvents: {filterCombatEvents}");
 
             var fileHandler = serviceProvider.GetService<IFileHandler>();
-            await fileHandler.FilterFileByUnitTypeAsync(inputFile, unitTypes, outputFile, filterCombatEvents, progress: null, CancellationToken.None);
+            try
+            {
+                await fileHandler.FilterFileByUnitTypeAsync(inputFile, unitTypes, outputFile, filterCombatEvents, progress: null, CancellationToken.None);
+            }
+            catch (BusinessException ex)
+            {
+                logger.LogError(ex.Message);
+                return 1;
+            }
 
             logger.LogInformation("All done!");
             return 0;

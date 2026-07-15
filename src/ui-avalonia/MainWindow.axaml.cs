@@ -9,6 +9,7 @@ namespace EsoLogFilter.Ui.Avalonia
     using global::Avalonia.Controls;
     using global::Avalonia.Interactivity;
     using global::Avalonia.Platform.Storage;
+    using EsoLogFilter.Core.Exceptions;
     using EsoLogFilter.Core.Model.Analysis;
     using EsoLogFilter.Core.Model.Objects;
     using EsoLogFilter.Core.Services;
@@ -124,10 +125,21 @@ namespace EsoLogFilter.Ui.Avalonia
             {
                 this.lblError.Text = "Cancelled.";
             }
+            catch (BusinessException ex)
+            {
+                this.lblError.Text = ex.Message;
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                // "File not found", "disk full", ... — already user-readable and actionable.
+                this.lblError.Text = ex.Message;
+            }
             catch (Exception ex)
             {
-                this.lblError.Text = ex.Message + "\r\n" + ex.StackTrace;
-                //this.lblError.Text = "An unexpected error has occurred!";
+                var logPath = ErrorReporter.TryWriteErrorLog(ex, $"Filter: source={sourceFile}, target={outFile}");
+                this.lblError.Text = logPath != null
+                    ? $"An unexpected error has occurred.\r\nDetails were saved to:\r\n{logPath}"
+                    : "An unexpected error has occurred.";
             }
             finally
             {
@@ -203,13 +215,20 @@ namespace EsoLogFilter.Ui.Avalonia
             {
                 this.lblPreviewError.Text = "Cancelled.";
             }
-            catch (IOException ioException)
+            catch (BusinessException ex)
             {
-                this.lblPreviewError.Text = ioException.Message;
+                this.lblPreviewError.Text = ex.Message;
             }
-            catch
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
-                this.lblPreviewError.Text = "An unexpected error has occurred!";
+                this.lblPreviewError.Text = ex.Message;
+            }
+            catch (Exception ex)
+            {
+                var logPath = ErrorReporter.TryWriteErrorLog(ex, $"Analyze: unfiltered={unfilteredFile}, filtered={filteredFile}");
+                this.lblPreviewError.Text = logPath != null
+                    ? $"An unexpected error has occurred.\r\nDetails were saved to:\r\n{logPath}"
+                    : "An unexpected error has occurred.";
             }
             finally
             {
