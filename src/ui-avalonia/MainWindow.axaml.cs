@@ -125,9 +125,10 @@ namespace EsoLogFilter.Ui.Avalonia
             {
                 this.lblError.Text = "Cancelled.";
             }
-            catch
+            catch (Exception ex)
             {
-                this.lblError.Text = "An unexpected error has occurred!";
+                this.lblError.Text = ex.Message + "\r\n" + ex.StackTrace;
+                //this.lblError.Text = "An unexpected error has occurred!";
             }
             finally
             {
